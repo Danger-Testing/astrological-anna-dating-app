@@ -155,12 +155,27 @@
   background: #fff;
   border: 3px solid var(--pink-border);
   border-radius: 12px;
-  padding: 10px 8px;
+  height: 46px;
+  padding: 0 12px;
   font-size: 15px;
   color: var(--ink);
   box-shadow: inset 0 2px 4px rgba(180, 60, 120, .15);
   font-family: Arial, sans-serif;
+  -webkit-appearance: none;
+  appearance: none;
 }
+
+/* custom chevron so selects render identically to the text inputs */
+.card select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23f14e98' stroke-width='2' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 26px;
+}
+
+/* no spinners on the minute field — keeps it flush with everything else */
+.card input[type=number]::-webkit-outer-spin-button,
+.card input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 .card select:focus,
 .card input:focus { outline: 2px solid var(--pink); }
@@ -171,8 +186,8 @@
 }
 
 .row input#bMin {
-  width: 76px;
-  flex: 0 0 76px;
+  width: 92px;
+  flex: 0 0 92px;
 }
 
 .colon {
@@ -190,8 +205,9 @@
   border: 3px solid var(--pink-border);
   background: #fff;
   color: var(--pink-heading);
-  border-radius: 10px;
-  padding: 9px 12px;
+  border-radius: 12px;
+  height: 46px;
+  padding: 0 12px;
   font-weight: bold;
   cursor: pointer;
 }
@@ -473,13 +489,56 @@
 }
 
 /* sparkles: twinkling scattered across the sky */
-.fx-spark {
-  animation: fxTwinkle ease-in-out infinite;
+/* sparkles: layered night-sky shimmer, all CSS-drawn.
+   fx-star = 4-point starburst (clip-path) blooming with a half-turn;
+   fx-mote = drifting stardust fleck; fx-shoot = shooting star, a gradient
+   tail that streaks along its rotated axis (rotate then translate). */
+.fx-star {
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, .9) 30%, rgba(255, 214, 240, 0) 72%);
+  clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, .9)) drop-shadow(0 0 14px rgba(241, 78, 152, .55));
+  animation: fxStar ease-in-out infinite;
 }
 
-@keyframes fxTwinkle {
-  0%, 100% { transform: scale(.4) rotate(0deg); opacity: .15; }
-  50%      { transform: scale(1.15) rotate(25deg); opacity: 1; }
+.fx-star.pink {
+  background: radial-gradient(circle, #ffd9e9 0%, rgba(247, 114, 176, .95) 32%, rgba(241, 78, 152, 0) 72%);
+  filter: drop-shadow(0 0 6px rgba(247, 114, 176, .95)) drop-shadow(0 0 14px rgba(241, 78, 152, .7));
+}
+
+@keyframes fxStar {
+  0%, 100% { transform: scale(.2) rotate(0deg); opacity: .05; }
+  50%      { transform: scale(1) rotate(180deg); opacity: 1; }
+}
+
+.fx-mote {
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 7px 2px rgba(255, 205, 235, .85);
+  animation: fxMote ease-in-out infinite;
+}
+
+@keyframes fxMote {
+  0%, 100% { transform: translate(0, 0) scale(.7); opacity: .1; }
+  30%      { opacity: .95; }
+  50%      { transform: translate(15px, -28px) scale(1); opacity: .45; }
+  75%      { opacity: .9; }
+}
+
+.fx-shoot {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 220, 240, .85) 65%, #fff);
+  box-shadow: 0 0 10px 1px rgba(255, 255, 255, .75);
+  transform-origin: 100% 50%;
+  opacity: 0;
+  animation: fxShoot linear infinite;
+}
+
+@keyframes fxShoot {
+  0%, 60%   { transform: rotate(-28deg) translateX(0); opacity: 0; }
+  64%       { opacity: 1; }
+  76%       { opacity: 1; }
+  84%, 100% { transform: rotate(-28deg) translateX(-56vw); opacity: 0; }
 }
 
 /* ---- Compatibility result modal ---- */
@@ -854,3 +913,325 @@ body.s2 .avatar {
 }
 
 #moreInfo:hover { opacity: 1; }
+
+/* ---- Stage 2b: favorite-movies field (appears when ≤3 shelf movies seen) ---- */
+/* Floats above the NEXT footer — the stage is a fixed-height viewport, so an
+   inline box would push below the fold. Grows upward as chips are added. */
+#faves {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  z-index: 14;
+  width: min(92vw, 560px);
+  padding: 14px 16px;
+  background: var(--pink-card);
+  border: 3px solid var(--pink-card-border);
+  border-radius: 16px;
+  box-shadow: 5px 6px 0 rgba(120, 20, 80, .35);
+  color: var(--pink-heading);
+}
+
+#faves.show { display: block; }
+
+#faves > b {
+  display: block;
+  margin-bottom: 8px;
+  letter-spacing: .5px;
+}
+
+#faves input {
+  width: 100%;
+  background: #fff;
+  border: 3px solid var(--pink-border);
+  border-radius: 12px;
+  padding: 10px 8px;
+  font-size: 15px;
+  color: var(--ink);
+  box-shadow: inset 0 2px 4px rgba(180, 60, 120, .15);
+  font-family: Arial, sans-serif;
+}
+
+#faves input:focus { outline: 2px solid var(--pink); }
+
+/* suggestion dropdown, same treatment as the city autocomplete but opening
+   upward (the box sits near the bottom edge) */
+#favList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 4px);
+  background: #fff;
+  border: 3px solid var(--pink-border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: none;
+  z-index: 5;
+  box-shadow: 0 6px 14px rgba(120, 20, 80, .25);
+}
+
+#favList div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 11px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+#favList div:hover { background: var(--pink-soft); }
+
+#favList img {
+  width: 28px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex: 0 0 28px;
+}
+
+#favChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.favChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 2px solid var(--pink);
+  border-radius: 9px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--ink);
+}
+
+.favChip img {
+  width: 24px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+
+.favChip .rm {
+  border: 0;
+  background: none;
+  color: var(--pink-deep);
+  font-weight: bold;
+  font-size: 15px;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+/* ---- Stage 3: looks match (upload -> paired polaroids -> verdict) ---- */
+#stage3 { display: none; }
+
+body.s3 #stage3 {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  inset: 0 21% 2% 3%;
+  z-index: 3;
+}
+
+body.s3 .card { display: none; }
+
+/* Anna shrinks into the corner exactly like stage 2 */
+body.s3 .avatar {
+  transform: translateX(-50%) translateX(37vw) scale(.5);
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* Upload zone: big candy drop target + CAPTURE */
+.lmUpload {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+}
+
+.lmDrop {
+  width: min(64vh, 480px);
+  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--pink-card);
+  border: 4px dashed var(--pink);
+  border-radius: 22px;
+  cursor: pointer;
+  color: var(--pink-heading);
+  box-shadow: 7px 9px 0 rgba(120, 20, 80, .35);
+  background-size: cover;
+  background-position: center;
+  transition: transform .15s ease-out;
+}
+
+.lmDrop:hover { transform: scale(1.02); }
+
+.lmDrop i { font-size: 54px; font-style: normal; }
+
+.lmDrop b { font-size: 20px; letter-spacing: 1px; }
+
+.lmDrop span { font-size: 13px; }
+
+/* once a photo is picked it becomes the drop zone's background */
+.lmDrop.hasPhoto { border-style: solid; }
+
+.lmDrop.hasPhoto i, .lmDrop.hasPhoto span { display: none; }
+
+.lmDrop.hasPhoto b {
+  background: rgba(255, 228, 240, .92);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+.lmCapture { width: min(64vh, 480px); margin: 0; }
+
+.lmCapture:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Paired polaroids, tilted toward each other */
+.lmStage { flex: 1; display: none; flex-direction: column; }
+
+.lmStage.show { display: flex; }
+
+.lmPair {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3vw;
+}
+
+.pol {
+  width: min(38vh, 320px);
+  margin: 0;
+  padding: 12px 12px 46px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, .45);
+  animation: polDrop .5s cubic-bezier(.4, 1.5, .5, 1) backwards;
+}
+
+.pol img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: var(--sky);
+}
+
+.pol figcaption {
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+  font-size: 17px;
+  letter-spacing: 2px;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.pol.you { transform: rotate(-6deg) translateY(8px); }
+
+.pol.annaPol { transform: rotate(5deg); animation-delay: .12s; }
+
+@keyframes polDrop {
+  from { opacity: 0; transform: translateY(-60px) rotate(0deg) scale(1.15); }
+}
+
+.lmHeart {
+  font-size: 52px;
+  animation: heartThrob 1s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .3));
+}
+
+@keyframes heartThrob { 50% { transform: scale(1.25); } }
+
+/* Loading bar: candy stripes crawling while the "analysis" runs */
+.lmLoad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8% 10px;
+}
+
+.lmBarWrap {
+  width: 100%;
+  height: 26px;
+  border-radius: 13px;
+  background: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af);
+  border: 2px solid #828692;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, .25);
+  overflow: hidden;
+}
+
+.lmBar {
+  width: 0;
+  height: 100%;
+  border-radius: 13px;
+  background: repeating-linear-gradient(-45deg, var(--pink) 0 14px, var(--pink-hot) 14px 28px);
+  background-size: 200% 100%;
+  animation: barCrawl .6s linear infinite;
+  transition: width .3s ease-out;
+}
+
+@keyframes barCrawl { to { background-position: -40px 0; } }
+
+.lmMsg {
+  color: #fff;
+  font-weight: bold;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 4px rgba(0, 0, 0, .45);
+}
+
+/* Verdict stamp */
+.lmVerdict {
+  display: none;
+  text-align: center;
+  padding: 0 0 8px;
+  font-size: 44px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  animation: stampIn .35s cubic-bezier(.3, 1.6, .5, 1) backwards;
+}
+
+.lmVerdict.show { display: block; }
+
+.lmVerdict.yes {
+  color: #baffc9;
+  text-shadow: 0 2px 0 #1c7a35, 0 4px 12px rgba(0, 0, 0, .5);
+}
+
+.lmVerdict.no {
+  color: #ffb3c2;
+  text-shadow: 0 2px 0 #8d1030, 0 4px 12px rgba(0, 0, 0, .5);
+}
+
+.lmVerdict small {
+  display: block;
+  font-size: 15px;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  color: #fff;
+  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 4px rgba(0, 0, 0, .45);
+}
+
+@keyframes stampIn {
+  from { opacity: 0; transform: scale(2.4) rotate(-6deg); }
+}
+
+.lmFoot { visibility: hidden; }
+
+.lmFoot.show { visibility: visible; }

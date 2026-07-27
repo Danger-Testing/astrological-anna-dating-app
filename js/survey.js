@@ -104,15 +104,36 @@
         s.style.animationDelay = -rnd(0, 1.8) + 's';
       });
     },
+    // layered shimmer: CSS-drawn 4-point starbursts (white + pink) blooming in
+    // and out, drifting stardust motes, and shooting stars streaking diagonally
     sparkles: function () {
-      spawn(18, function (s) {
-        s.className = 'fx-spark';
-        s.textContent = '✨';
+      spawn(16, function (s, i) {
+        s.className = 'fx-star' + (i % 3 === 2 ? ' pink' : '');
+        var sz = rnd(16, 58);
+        s.style.width = sz + 'px';
+        s.style.height = sz + 'px';
         s.style.left = rnd(0, 96) + '%';
-        s.style.top = rnd(2, 88) + '%';
-        s.style.fontSize = rnd(18, 52) + 'px';
-        s.style.animationDuration = rnd(1.2, 2.8) + 's';
-        s.style.animationDelay = -rnd(0, 2.8) + 's';
+        s.style.top = rnd(2, 86) + '%';
+        s.style.animationDuration = rnd(1.4, 3.2) + 's';
+        s.style.animationDelay = -rnd(0, 3.2) + 's';
+      });
+      spawn(26, function (s) {
+        s.className = 'fx-mote';
+        var sz = rnd(2.5, 5.5);
+        s.style.width = sz + 'px';
+        s.style.height = sz + 'px';
+        s.style.left = rnd(0, 98) + '%';
+        s.style.top = rnd(2, 94) + '%';
+        s.style.animationDuration = rnd(2.2, 4.6) + 's';
+        s.style.animationDelay = -rnd(0, 4.6) + 's';
+      });
+      spawn(5, function (s) {
+        s.className = 'fx-shoot';
+        s.style.left = rnd(35, 92) + '%';
+        s.style.top = rnd(4, 55) + '%';
+        s.style.width = rnd(90, 180) + 'px';
+        s.style.animationDuration = rnd(2.6, 5) + 's';
+        s.style.animationDelay = -rnd(0, 5) + 's';
       });
     }
   };
@@ -248,16 +269,137 @@
     });
   });
 
+  /* ---- Stage 2b: favorite movies (demanded when they've seen ≤3 of the shelf) ----
+     Poster lookup via the Wikipedia API (free, no key, CORS-friendly): search
+     "<query> film", use each article's page image (the poster; pilicense=any
+     because posters are non-free). No match? Enter adds it as plain text.
+     (iTunes Search API was tried first but Apple emptied its movie catalog.) */
+  var favs = [];
+  var favesBox = $('faves'), favInput = $('favInput'), favList = $('favList'), favChips = $('favChips');
+  var favDeb = null;
+
+  function wikiSearch(q, cb) {
+    fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' +
+      encodeURIComponent(q + ' film') +
+      '&gsrlimit=5&prop=pageimages&piprop=thumbnail&pithumbsize=120&pilicense=any&format=json&origin=*')
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var pages = (j.query && j.query.pages) ? Object.keys(j.query.pages).map(function (k) { return j.query.pages[k]; }) : [];
+        pages = pages.filter(function (p) { return !/\(disambiguation\)/i.test(p.title); });
+        pages.sort(function (a, b) { return a.index - b.index; });
+        cb(pages);
+      })
+      .catch(function () { cb([]); });
+  }
+
+  function renderFavChips() {
+    favChips.innerHTML = '';
+    favs.forEach(function (f, i) {
+      var chip = document.createElement('span');
+      chip.className = 'favChip';
+      if (f.art) {
+        var img = document.createElement('img');
+        img.src = f.art;
+        img.alt = '';
+        chip.appendChild(img);
+      }
+      var label = document.createElement('span');
+      label.textContent = f.title;
+      chip.appendChild(label);
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'rm';
+      rm.textContent = '×';
+      rm.addEventListener('click', function () { favs.splice(i, 1); renderFavChips(); });
+      chip.appendChild(rm);
+      favChips.appendChild(chip);
+    });
+  }
+
+  function addFav(title, art) {
+    if (!title) return;
+    if (favs.some(function (f) { return f.title.toLowerCase() === title.toLowerCase(); })) return;
+    favs.push({ title: title, art: art || '' });
+    renderFavChips();
+    favInput.value = '';
+    favList.style.display = 'none';
+  }
+
+  favInput.addEventListener('input', function () {
+    clearTimeout(favDeb);
+    var q = favInput.value.trim();
+    if (q.length < 2) { favList.style.display = 'none'; return; }
+    favDeb = setTimeout(function () {
+      wikiSearch(q, function (res) {
+        favList.innerHTML = res.map(function (m, i) {
+          return '<div data-i="' + i + '">' +
+            (m.thumbnail ? '<img src="' + m.thumbnail.source + '" alt="">' : '') +
+            '<span></span></div>';
+        }).join('') || '<div>no matches — press Enter to add it anyway</div>';
+        var labels = favList.querySelectorAll('div[data-i] span');
+        res.forEach(function (m, i) { labels[i].textContent = m.title; });
+        favList.style.display = 'block';
+        favList.querySelectorAll('div[data-i]').forEach(function (d) {
+          d.addEventListener('mousedown', function () {
+            var m = res[+d.dataset.i];
+            // strip Wikipedia's " (1979 film)" disambiguation for the chip + scoring
+            addFav(m.title.replace(/\s*\([^)]*\)\s*$/, ''), m.thumbnail ? m.thumbnail.source : '');
+          });
+        });
+      });
+    }, 300);
+  });
+  favInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addFav(favInput.value.trim()); }
+  });
+  favInput.addEventListener('blur', function () {
+    setTimeout(function () { favList.style.display = 'none'; }, 200);
+  });
+
+  /* ---- Movie-taste scoring: shelf seen-count + judged favorites ---- */
+  function seenCount() {
+    return Object.keys(seen).filter(function (k) { return seen[k]; }).length;
+  }
+
+  function withMovieTaste(base) {
+    if (base.percent === 0) return base; // the age gate has spoken; movies can't save you
+    var flags = [], mod = 0;
+    var n = seenCount();
+    if (n) {
+      var pts = Math.round(n * 1.5 * 10) / 10;
+      mod += pts;
+      flags.push({ text: 'you’ve genuinely seen ' + n + ' of the 12 movies on Anna’s shelf', pts: pts, good: true });
+    }
+    favs.forEach(function (f) {
+      var kind = Taste.classify(f.title);
+      if (kind === 'art') { mod += 7; flags.push({ text: '“' + f.title + '” — certified Anna-core cinema', pts: 7, good: true }); }
+      else if (kind === 'normie') { mod -= 9; flags.push({ text: '“' + f.title + '” — Anna felt physically ill reading this', pts: -9, good: false }); }
+    });
+    mod = Math.max(-25, Math.min(25, mod));
+    var pct = Math.max(2, Math.min(99, base.percent + Math.round(mod)));
+    return {
+      percent: pct,
+      verdict: Synastry.verdictFor(pct),
+      you: base.you, anna: base.anna, aspectCount: base.aspectCount,
+      green: flags.filter(function (f) { return f.good; }).concat(base.green).slice(0, 6),
+      red: flags.filter(function (f) { return !f.good; }).concat(base.red).slice(0, 6)
+    };
+  }
+
   function goStage(n) {
     document.body.classList.toggle('s2', n === 2);
+    document.body.classList.toggle('s3', n === 3);
     document.querySelectorAll('.map .node').forEach(function (node, i) {
       node.classList.toggle('active', i === n - 1);
       node.classList.toggle('done', i < n - 1);
     });
   }
-  // completed node 1 is clickable to go back and fix birth details
-  document.querySelector('.node.n1').addEventListener('click', function () {
-    if (document.body.classList.contains('s2')) goStage(1);
+  // completed nodes are clickable to go back and redo an earlier stage
+  [1, 2].forEach(function (n) {
+    var node = document.querySelector('.node.n' + n);
+    node.addEventListener('click', function () {
+      if (node.classList.contains('done')) goStage(n);
+    });
   });
 
   /* ---- Compatibility reveal: ring + % flashed between stages ----
@@ -319,18 +461,125 @@
     var h24 = (h12 % 12) + (pm ? 12 : 0);
     synastryResult = Synastry.compute({ y: y, mo: mo, d: d, h: h24, mi: mi, lat: selected.lat, lon: selected.lon, tz: selected.tz });
     $('moreInfo').style.display = 'block';
-    playReveal(synastryResult, function () { goStage(2); });
+    if (synastryResult.percent === 0) {
+      // teenagers do not advance: reveal the 0, let her be scared, show the receipt
+      playReveal(synastryResult, function () { showResult(synastryResult); });
+    } else {
+      playReveal(synastryResult, function () { goStage(2); });
+    }
   });
 
-  // stage 2 NEXT: stages 3-5 don't exist yet, so just replay the reveal
-  // (movie taste doesn't move the score yet)
+  // stage 2 NEXT: seen ≤3 of the shelf? then Anna demands ≥2 favorites first.
+  // Movie taste folds into the score, then the reveal hands off to stage 3.
+  var tasteResult = null;
   $('nextBtn2').addEventListener('click', function () {
-    if (synastryResult) playReveal(synastryResult);
+    if (!synastryResult) return;
+    if (seenCount() <= 3 && favs.length < 2) {
+      favesBox.classList.add('show');
+      favInput.focus();
+      return;
+    }
+    tasteResult = withMovieTaste(synastryResult);
+    playReveal(tasteResult, function () { goStage(3); });
+  });
+
+  /* ---- Stage 3: looks match ----
+     Upload -> CAPTURE -> the two polaroids pair up while the loading bar
+     runs -> LOOKS MATCHED or not. Looks.analyze (assets/looks.js) is
+     instant canvas math; the loading bar is pure theater. */
+  var lmFile = $('lmFile'), lmDrop = $('lmDrop'), lmCapture = $('lmCapture');
+  var lmImg = null, looksScore = null, looksResult = null;
+
+  lmDrop.addEventListener('click', function () { lmFile.click(); });
+  lmFile.addEventListener('change', function () {
+    var f = lmFile.files && lmFile.files[0];
+    if (!f) return;
+    var url = URL.createObjectURL(f);
+    var img = new Image();
+    img.onload = function () {
+      lmImg = img;
+      lmDrop.classList.add('hasPhoto');
+      lmDrop.style.backgroundImage = 'url("' + url + '")';
+      lmDrop.querySelector('b').textContent = 'hmm. okay. ready when you are';
+      lmCapture.disabled = false;
+      $('lmYouImg').src = url;
+    };
+    img.src = url;
+  });
+
+  var LM_MSGS = [
+    'checking looks compatibility…',
+    'measuring facial symmetry…',
+    'checking hair darkness…',
+    'estimating eye color…',
+    'running the blonde detector…',
+    'consulting anna’s type…'
+  ];
+
+  lmCapture.addEventListener('click', function () {
+    if (!lmImg) return;
+    looksScore = Looks.analyze(lmImg);
+    $('lmUpload').style.display = 'none';
+    $('lmStage').classList.add('show');
+    var bar = $('lmBar'), msg = $('lmMsg'), i = 0;
+    msg.textContent = LM_MSGS[0];
+    bar.style.width = Math.round(100 / LM_MSGS.length) + '%';
+    var iv = setInterval(function () {
+      i++;
+      if (i < LM_MSGS.length) {
+        msg.textContent = LM_MSGS[i];
+        bar.style.width = Math.round((i + 1) / LM_MSGS.length * 100) + '%';
+      } else {
+        clearInterval(iv);
+        setTimeout(showLooksVerdict, 350);
+      }
+    }, 620);
+  });
+
+  function showLooksVerdict() {
+    $('lmLoad').style.display = 'none';
+    var v = $('lmVerdict');
+    v.className = 'lmVerdict show ' + (looksScore.matched ? 'yes' : 'no');
+    // headline the flag that matches the verdict's mood
+    var pool = looksScore.flags.filter(function (f) { return f.good === looksScore.matched; });
+    v.innerHTML = (looksScore.matched ? 'LOOKS MATCHED 💘' : 'NOT LOOKS MATCHED 💔') +
+      (pool.length ? '<small>' + pool[0].text + '</small>' : '');
+    $('lmHeart').textContent = looksScore.matched ? '💘' : '💔';
+    setMood(looksScore.matched ? 'love' : 'angry');
+    if (looksScore.matched) {
+      var heartsBtn = document.querySelector('.anims button[data-fx="hearts"]');
+      if (heartsBtn) heartsBtn.click();
+    }
+    $('lmScoreLine').textContent = 'looks score: ' + looksScore.score + ' / 100';
+    $('lmFoot').classList.add('show');
+  }
+
+  /* ---- Looks fold into the running score ---- */
+  function withLooks(base) {
+    if (!looksScore || base.percent === 0) return base;
+    var mod = Math.max(-18, Math.min(18, Math.round((looksScore.score - 55) / 2.2)));
+    var pct = Math.max(2, Math.min(99, base.percent + mod));
+    return {
+      percent: pct,
+      verdict: Synastry.verdictFor(pct),
+      you: base.you, anna: base.anna, aspectCount: base.aspectCount,
+      green: looksScore.flags.filter(function (f) { return f.good; }).slice(0, 2).concat(base.green).slice(0, 6),
+      red: looksScore.flags.filter(function (f) { return !f.good; }).slice(0, 2).concat(base.red).slice(0, 6)
+    };
+  }
+
+  // stage 3 NEXT: fold looks in; stages 4-5 don't exist yet, so the adjusted
+  // reveal is the end of the road for now.
+  $('nextBtn3').addEventListener('click', function () {
+    if (!synastryResult) return;
+    looksResult = withLooks(tasteResult || synastryResult);
+    playReveal(looksResult);
   });
 
   // temporary escape hatch to the full synastry report
   $('moreInfo').addEventListener('click', function () {
-    if (synastryResult) showResult(synastryResult);
+    var r = looksResult || tasteResult || synastryResult;
+    if (r) showResult(r);
   });
 
   function showResult(r) {
@@ -351,9 +600,14 @@
     if (e.target.id === 'overlay') e.target.style.display = 'none';
   });
 
-  /* ---- Dev hook: ?test=1 auto-fills the form and clicks NEXT ---- */
+  /* ---- Dev hooks: ?stage=N jumps straight to a stage (looks-match verdict
+     works standalone; its NEXT still needs a real stage-1 run). ?test=1
+     auto-fills the form and clicks NEXT. ---- */
+  var stageParam = +new URLSearchParams(location.search).get('stage');
+  if (stageParam >= 2) goStage(Math.min(stageParam, 3));
   if (new URLSearchParams(location.search).get('test')) {
-    $('bMonth').value = 3; $('bDay').value = 3; $('bYear').value = 2000;
+    $('bMonth').value = 3; $('bDay').value = 3;
+    $('bYear').value = +new URLSearchParams(location.search).get('year') || 2000;
     $('bHour').value = 10; $('bMin').value = 0;
     amBtn.click();
     selected = { lat: 40.6501, lon: -73.94958, tz: 'America/New_York' };

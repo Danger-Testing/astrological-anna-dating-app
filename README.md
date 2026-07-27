@@ -61,7 +61,9 @@ PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 
 ## Known limitations (honest state of things)
 
-- **NEXT flashes the compatibility reveal** (animated ring + counting %, Anna reacts: ≥70 love, 40-69 neutral, 20-39 sad, <20 scared) then advances the stage. The full synastry report modal now hides behind the tiny **ⓘ more info** button (bottom-right, temporary, appears after the first computation). Stages 3-5 don't exist yet, so stage 2's NEXT just replays the reveal.
+- **NEXT flashes the compatibility reveal** (animated ring + counting %, Anna reacts: ≥70 love, 40-69 neutral, 20-39 sad, <20 scared) then advances the stage. The full synastry report modal now hides behind the tiny **ⓘ more info** button (bottom-right, temporary, appears after the first computation). Stages 3-5 don't exist yet, so stage 2's NEXT just replays the (taste-adjusted) reveal.
+- **Stage 2 scores movie taste** (`assets/taste.js`): each shelf movie seen = +1.5; if ≤3 seen, NEXT demands ≥2 typed favorites (floating card, poster lookup via the **Wikipedia API** — free, no key; iTunes Search was tried but Apple emptied its movie catalog). Favorites are classified against a curated arthouse canon (+7 each) vs. a basic-normie list/franchise patterns (−9 each); unknowns score 0. The taste modifier is capped at ±25 and folded into the reveal + report.
+- **Beta panels** (bottom-left) each have a −/+ button to hide/show them; the state persists in localStorage.
 - Location autocomplete uses **Open-Meteo geocoding** (free, no key) rather than Google Places; it returns lat/lon + IANA timezone, which the chart math needs. Swap in Google later if desired (needs an API key).
 - The synastry scoring weights/orbs are hand-rolled and tuned for fun, not certified by an astrologer.
 - Not deployed anywhere; local only.

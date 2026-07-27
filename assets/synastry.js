@@ -122,11 +122,7 @@
     found = found.concat(mods);
     found.sort(function (a, b) { return Math.abs(b.pts) - Math.abs(a.pts); });
     var verdict = teen ? 'You are a teenager. The universe (and the law) said absolutely not.'
-      : pct >= 80 ? 'Anna might actually want to date you.'
-      : pct >= 60 ? 'The stars are… intrigued. There is something here.'
-      : pct >= 40 ? 'The stars say: mid. Proceed with caution.'
-      : pct >= 20 ? 'Venus is fighting for her life here.'
-      : 'The universe said absolutely not.';
+      : verdictFor(pct);
     function big3(c) { return { sun: sign(c.points.Sun), moon: sign(c.points.Moon), rising: sign(c.points.Ascendant) }; }
     return {
       percent: pct, verdict: verdict,
@@ -136,5 +132,12 @@
       aspectCount: aspectCount
     };
   }
-  window.Synastry = { compute: synastry, ANNA: ANNA };
+  function verdictFor(pct) {
+    return pct >= 80 ? 'Anna might actually want to date you.'
+      : pct >= 60 ? 'The stars are… intrigued. There is something here.'
+      : pct >= 40 ? 'The stars say: mid. Proceed with caution.'
+      : pct >= 20 ? 'Venus is fighting for her life here.'
+      : 'The universe said absolutely not.';
+  }
+  window.Synastry = { compute: synastry, verdictFor: verdictFor, ANNA: ANNA };
 })();

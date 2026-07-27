@@ -23,7 +23,7 @@
     <i class="node n5">5</i>
     <em class="lbl n1">astrology</em>
     <em class="lbl n2">movie test</em>
-    <em class="lbl n3">swaggy genius</em>
+    <em class="lbl n3">looks match</em>
     <em class="lbl n4">height</em>
     <em class="lbl n5">final</em>
   </nav>
@@ -49,7 +49,7 @@
       <div class="row">
         <select id="bHour"></select>
         <span class="colon">:</span>
-        <input id="bMin" type="number" min="0" max="59" placeholder="mm">
+        <input id="bMin" type="number" min="0" max="59" placeholder="minute">
         <div class="ampm">
           <button type="button" id="amBtn">AM</button>
           <button type="button" id="pmBtn" class="on">PM</button>
@@ -84,6 +84,41 @@
         <span class="seen" id="seenCount">0 / 12 seen</span>
         <button type="button" class="next" id="nextBtn2">NEXT →</button>
       </footer>
+    </section>
+
+    <!-- Stage 3: looks match (photo upload -> paired polaroids -> verdict) -->
+    <section id="stage3">
+      <header class="shelfHead">
+        <b>LOOKS MATCH</b>
+        <span>upload a photo — Anna needs to see exactly who she's dealing with</span>
+      </header>
+
+      <div class="lmUpload" id="lmUpload">
+        <input type="file" id="lmFile" accept="image/*" hidden>
+        <button type="button" class="lmDrop" id="lmDrop">
+          <i>📸</i>
+          <b>upload a photo of yourself</b>
+          <span>face clearly visible · no group pics · Anna will know</span>
+        </button>
+        <button type="button" class="next lmCapture" id="lmCapture" disabled>CAPTURE →</button>
+      </div>
+
+      <div class="lmStage" id="lmStage">
+        <div class="lmPair">
+          <figure class="pol you"><img id="lmYouImg" alt="you"><figcaption>you</figcaption></figure>
+          <div class="lmHeart" id="lmHeart">💘</div>
+          <figure class="pol annaPol"><img src="assets/portrait.png" alt="anna"><figcaption>anna</figcaption></figure>
+        </div>
+        <div class="lmLoad" id="lmLoad">
+          <div class="lmBarWrap"><div class="lmBar" id="lmBar"></div></div>
+          <span class="lmMsg" id="lmMsg">checking looks compatibility…</span>
+        </div>
+        <div class="lmVerdict" id="lmVerdict"></div>
+        <footer class="shelfFoot lmFoot" id="lmFoot">
+          <span class="seen" id="lmScoreLine"></span>
+          <button type="button" class="next" id="nextBtn3">NEXT →</button>
+        </footer>
+      </div>
     </section>
 
     <div class="betas">
@@ -143,6 +178,8 @@
 
   <script src="assets/astronomy.browser.min.js"></script>
   <script src="assets/synastry.js"></script>
+  <script src="assets/taste.js"></script>
+  <script src="assets/looks.js"></script>
   <script src="js/survey.js"></script>
 
 </body>
