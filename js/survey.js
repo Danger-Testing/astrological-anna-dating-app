@@ -341,8 +341,7 @@
     return Object.keys(seen).filter(function (k) { return seen[k]; }).length;
   }
 
-  function withMovieTaste(base) {
-    if (base.percent === 0) return base; // the age gate has spoken; movies can't save you
+  function movieMod() {
     var flags = [], mod = 0;
     var n = seenCount();
     if (n) {
@@ -356,28 +355,41 @@
       else if (kind === 'normie') { mod -= 9; flags.push({ text: '“' + f.title + '” — Anna felt physically ill reading this', pts: -9, good: false }); }
     });
     mod = Math.max(-25, Math.min(25, mod));
-    var pct = Math.max(2, Math.min(99, base.percent + Math.round(mod)));
+    return { mod: mod, flags: flags };
+  }
+
+  // the movie test's own standalone score (what the stage-2 reveal shows)
+  function moviePercent() {
+    return Math.max(2, Math.min(99, 50 + Math.round(movieMod().mod * 2)));
+  }
+
+  function withMovieTaste(base) {
+    if (base.percent === 0) return base; // the age gate has spoken; movies can't save you
+    var m = movieMod();
+    var pct = Math.max(2, Math.min(99, base.percent + Math.round(m.mod)));
     return {
       percent: pct,
       verdict: Synastry.verdictFor(pct),
       you: base.you, anna: base.anna, aspectCount: base.aspectCount,
-      green: flags.filter(function (f) { return f.good; }).concat(base.green).slice(0, 6),
-      red: flags.filter(function (f) { return !f.good; }).concat(base.red).slice(0, 6)
+      green: m.flags.filter(function (f) { return f.good; }).concat(base.green).slice(0, 6),
+      red: m.flags.filter(function (f) { return !f.good; }).concat(base.red).slice(0, 6)
     };
   }
 
   function goStage(n) {
     document.body.classList.toggle('s2', n === 2);
     document.body.classList.toggle('s3', n === 3);
-    // photobooth camera only runs while stage 3 is showing its upload step
-    if (n === 3) startBooth(); else stopBooth();
+    document.body.classList.toggle('s4', n === 4);
+    // leaving stage 3 releases the photobooth camera
+    if (n !== 3) stopBooth();
+    if (n === 4) syncStandees();
     document.querySelectorAll('.map .node').forEach(function (node, i) {
       node.classList.toggle('active', i === n - 1);
       node.classList.toggle('done', i < n - 1);
     });
   }
   // completed nodes are clickable to go back and redo an earlier stage
-  [1, 2].forEach(function (n) {
+  [1, 2, 3].forEach(function (n) {
     var node = document.querySelector('.node.n' + n);
     node.addEventListener('click', function () {
       if (node.classList.contains('done')) goStage(n);
@@ -398,10 +410,11 @@
   }
   var RING_C = 2 * Math.PI * 54; // circumference of the r=54 ring
   var revealing = false;
-  function playReveal(r, after) {
+  function playReveal(r, after, label) {
     if (revealing) return;
     revealing = true;
     var reveal = $('reveal'), fill = $('ringFill'), pctEl = $('ringPct');
+    reveal.querySelector('.ringLabel').textContent = label || 'cosmic compatibility';
     fill.style.strokeDasharray = RING_C;
     fill.style.strokeDashoffset = RING_C;
     pctEl.textContent = '0%';
@@ -496,7 +509,8 @@
       return;
     }
     tasteResult = withMovieTaste(synastryResult);
-    playReveal(tasteResult, function () { goStage(3); });
+    // the reveal shows the movie test's OWN score, not the running blend
+    playReveal({ percent: moviePercent() }, function () { goStage(3); }, 'movie compatibility');
   });
 
   /* ---- Stage 3: looks match ----
@@ -510,8 +524,11 @@
   var boothStream = null, boothOn = false, boothTimer = null;
 
   function startBooth() {
-    if (boothOn || lmImg) return; // already live, or a photo is already locked in
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    if (boothOn) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      $('lmPrompt').textContent = 'no camera here — upload one instead';
+      return;
+    }
     navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 } }, audio: false })
       .then(function (stream) {
         boothStream = stream;
@@ -520,7 +537,9 @@
         $('booth').classList.add('live');
         lmCapture.disabled = false;
       })
-      .catch(function () { /* denied or no camera: the upload button stays */ });
+      .catch(function () {
+        $('lmPrompt').textContent = 'camera said no 💔 upload one instead';
+      });
   }
   function stopBooth() {
     if (boothStream) { boothStream.getTracks().forEach(function (t) { t.stop(); }); boothStream = null; }
@@ -564,7 +583,8 @@
     }, 800);
   }
 
-  lmDrop.addEventListener('click', function () { lmFile.click(); });
+  $('lmTake').addEventListener('click', startBooth);
+  $('lmPick').addEventListener('click', function () { lmFile.click(); });
   lmFile.addEventListener('change', function () {
     var f = lmFile.files && lmFile.files[0];
     if (!f) return;
@@ -598,6 +618,10 @@
 
   function runLooks() {
     looksScore = Looks.analyze(lmImg);
+    // white-background polaroid: same face-cutout tech as the stage-4 standee head
+    if (looksScore.stats && looksScore.stats.face) {
+      $('lmYouImg').src = faceOnWhite(lmImg, looksScore.stats.face);
+    }
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
     var bar = $('lmBar'), msg = $('lmMsg'), i = 0;
@@ -621,9 +645,9 @@
     v.className = 'lmVerdict show ' + (looksScore.matched ? 'yes' : 'no');
     // headline the flag that matches the verdict's mood
     var pool = looksScore.flags.filter(function (f) { return f.good === looksScore.matched; });
-    v.innerHTML = (looksScore.matched ? 'LOOKS MATCHED 💘' : 'NOT LOOKS MATCHED 💔') +
+    v.innerHTML = (looksScore.matched ? 'LOOKS MATCHED ' : 'NOT LOOKS MATCHED ') + heartSVG(!looksScore.matched) +
       (pool.length ? '<small>' + pool[0].text + '</small>' : '');
-    $('lmHeart').textContent = looksScore.matched ? '💘' : '💔';
+    $('lmHeart').innerHTML = heartSVG(!looksScore.matched);
     setMood(looksScore.matched ? 'love' : 'angry');
     if (looksScore.matched) {
       var heartsBtn = document.querySelector('.anims button[data-fx="hearts"]');
@@ -647,17 +671,185 @@
     };
   }
 
-  // stage 3 NEXT: fold looks in; stages 4-5 don't exist yet, so the adjusted
-  // reveal is the end of the road for now.
+  // stage 3 NEXT: fold looks in, then on to the height check
   $('nextBtn3').addEventListener('click', function () {
     if (!synastryResult) return;
     looksResult = withLooks(tasteResult || synastryResult);
-    playReveal(looksResult);
+    // the reveal shows the looks stage's OWN 0-100 score
+    playReveal({ percent: looksScore ? looksScore.score : looksResult.percent }, function () { goStage(4); }, 'looks compatibility');
+  });
+
+  /* ---- Stage 4: the height check ----
+     Two department-store cardboard standees on a floor: you (head cropped
+     from the stage-3 photo via its face box) and Anna. The ruler slider
+     resizes your standee live against Anna's dashed height line. */
+  var ANNA_IN = 62; // Anna is 5'2"
+  var hcIn = 69;    // slider default: 5'9"
+
+  function fmtHeight(inches) {
+    var ft = Math.floor(inches / 12);
+    var rem = +(inches - ft * 12).toFixed(1);
+    return ft + '′' + rem + '″';
+  }
+
+  // JibJab-style head: cut an ellipse around the detected face and give it a
+  // white die-cut sticker border; everything outside the ellipse is transparent
+  function faceSticker(img, box) {
+    var bw = (box.x1 - box.x0) * img.naturalWidth, bh = (box.y1 - box.y0) * img.naturalHeight;
+    var cx = (box.x0 + box.x1) / 2 * img.naturalWidth, cy = (box.y0 + box.y1) / 2 * img.naturalHeight;
+    var rx = bw * 0.72, ry = bh * 0.82; // a hair wider/taller than the box for hair + chin
+    var W = 300, H = Math.max(200, Math.round(300 * (ry / rx)));
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    var ctx = c.getContext('2d');
+    ctx.beginPath();
+    ctx.ellipse(W / 2, H / 2, W / 2 - 2, H / 2 - 2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill(); // the white border IS a bigger white ellipse underneath
+    ctx.beginPath();
+    ctx.ellipse(W / 2, H / 2, W / 2 - 14, H / 2 - 14, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2, 14, 14, W - 28, H - 28);
+    return c.toDataURL('image/png');
+  }
+  var stickerUrl = null, stickerFor = '';
+
+  // same cutout tech, composed onto a white canvas: the stage-3 polaroid gets
+  // a clean white background like Anna's studio shot
+  function faceOnWhite(img, box) {
+    var W = 600, H = 800;
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+    var bw = (box.x1 - box.x0) * img.naturalWidth, bh = (box.y1 - box.y0) * img.naturalHeight;
+    var cx = (box.x0 + box.x1) / 2 * img.naturalWidth, cy = (box.y0 + box.y1) / 2 * img.naturalHeight;
+    var rx = bw * 0.85, ry = bh * 1.05;
+    var eRx = W * 0.36, eRy = eRx * (ry / rx), ex = W / 2, ey = H * 0.44;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(ex, ey, eRx, eRy, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2, ex - eRx, ey - eRy, eRx * 2, eRy * 2);
+    ctx.restore();
+    return c.toDataURL('image/jpeg', 0.92);
+  }
+
+  /* drawn hearts instead of emoji: solid candy heart, optionally cracked */
+  function heartSVG(broken) {
+    var crack = broken
+      ? '<path d="M16 3.5 L12.5 10 L17.5 14.5 L13 20 L16.5 26" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>'
+      : '';
+    return '<svg class="heartIco" viewBox="0 0 32 30" aria-hidden="true">' +
+      '<path d="M16 28.5 C8 21.5 .5 15.5 .5 9 C.5 4.3 4.3 .5 9 .5 C11.9 .5 14.4 2 16 4.3 C17.6 2 20.1 .5 23 .5 C27.7 .5 31.5 4.3 31.5 9 C31.5 15.5 24 21.5 16 28.5 Z" fill="#f14e98" stroke="#a81260" stroke-width="1.4"/>' +
+      crack + '</svg>';
+  }
+
+  // de-emoji the report modal headers
+  (function () {
+    var h3s = document.querySelectorAll('.modal h3');
+    if (h3s.length >= 2) {
+      h3s[0].innerHTML = heartSVG(false) + ' GREEN FLAGS';
+      h3s[1].innerHTML = heartSVG(true) + ' RED FLAGS';
+    }
+  })();
+
+  function syncStandees() {
+    var floor = $('hcFloor');
+    if (!floor.clientHeight) return;
+    var ppi = floor.clientHeight / 86; // pixels per inch, with headroom over the 84in max
+    var you = $('hcYou'), anna = $('hcAnnaStd');
+    you.style.height = (hcIn * ppi) + 'px';
+    you.style.width = (hcIn * ppi * 0.34) + 'px';
+    anna.style.height = (ANNA_IN * ppi) + 'px';
+    anna.style.width = anna.classList.contains('full') ? 'auto' : (ANNA_IN * ppi * 0.34) + 'px';
+    $('hcAnnaLine').style.bottom = (ANNA_IN * ppi - 3) + 'px'; // -3: sit the dashes on her head, not above it
+    $('hcReadout').textContent = fmtHeight(hcIn);
+    var diff = +(hcIn - ANNA_IN).toFixed(1);
+    $('hcLine').textContent = diff === 0 ? 'exactly anna’s height'
+      : Math.abs(diff) + '″ ' + (diff > 0 ? 'taller' : 'shorter') + ' than anna';
+    var yh = $('hcYouHead');
+    if (lmImg) {
+      yh.textContent = '';
+      var box = (looksScore && looksScore.stats && looksScore.stats.face) ||
+        { x0: .3, x1: .7, y0: .12, y1: .5 }; // no face box? assume a centered head
+      if (stickerFor !== lmImg.src) {
+        stickerUrl = faceSticker(lmImg, box);
+        stickerFor = lmImg.src;
+      }
+      yh.classList.add('sticker');
+      yh.style.backgroundImage = 'url("' + stickerUrl + '")';
+    } else {
+      yh.classList.remove('sticker');
+      yh.style.backgroundImage = '';
+      yh.textContent = '?';
+    }
+  }
+
+  // if a real full-body Anna cutout exists (assets/anna-fullbody.png, generated
+  // separately), use it instead of the cardboard silhouette
+  (function () {
+    var img = new Image();
+    img.onload = function () {
+      var std = $('hcAnnaStd');
+      std.classList.add('full');
+      std.innerHTML = '';
+      img.alt = 'anna';
+      std.appendChild(img);
+      if (document.body.classList.contains('s4')) syncStandees();
+    };
+    img.src = 'assets/anna-fullbody.png';
+  })();
+
+  $('hcSlider').addEventListener('input', function () {
+    hcIn = +this.value;
+    syncStandees();
+  });
+  window.addEventListener('resize', function () {
+    if (document.body.classList.contains('s4')) syncStandees();
+  });
+
+  /* Anna's height preference: she's 5'2" but wants 5'9"-6'3", sweet spot
+     5'11"-6'0"; 5'7"-5'9" is tolerated, under 5'7" scores badly, and at or
+     below her own height is fatal. */
+  function heightFlag(inches) {
+    var v = fmtHeight(inches);
+    if (inches <= ANNA_IN) return { text: v + ' — shorter than Anna herself. she wears heels. constantly.', pts: -24, good: false };
+    if (inches < 67) return { text: v + ' — taller than her, sure, but under the 5′7″ line', pts: -Math.min(18, Math.round((67 - inches) * 3)), good: false };
+    if (inches < 69) return { text: v + ' — 5′7″-something. Anna is politely unimpressed', pts: 2, good: true };
+    if (inches >= 71 && inches <= 72) return { text: v + ' — the sweet spot. Anna already saved your number', pts: 12, good: true };
+    if (inches <= 75) return { text: v + ' — right in Anna’s preferred range (5′9″–6′3″)', pts: 8, good: true };
+    var pts = Math.max(-6, 8 - Math.round((inches - 75) * 2));
+    return { text: v + ' — over 6′3″. Anna would need a step ladder, which is… fine?', pts: pts, good: pts >= 0 };
+  }
+
+  var heightResult = null;
+  function withHeight(base) {
+    if (base.percent === 0) return base;
+    var f = heightFlag(hcIn);
+    var pct = Math.max(2, Math.min(99, base.percent + f.pts));
+    return {
+      percent: pct,
+      verdict: Synastry.verdictFor(pct),
+      you: base.you, anna: base.anna, aspectCount: base.aspectCount,
+      green: (f.good ? [f] : []).concat(base.green).slice(0, 6),
+      red: (f.good ? [] : [f]).concat(base.red).slice(0, 6)
+    };
+  }
+
+  // stage 4 NEXT: fold the height preference in; stage 5 doesn't exist yet,
+  // so the adjusted reveal is the end of the road for now
+  $('nextBtn4').addEventListener('click', function () {
+    var base = looksResult || tasteResult || synastryResult;
+    if (!base) return;
+    heightResult = withHeight(base);
+    playReveal(heightResult);
   });
 
   // temporary escape hatch to the full synastry report
   $('moreInfo').addEventListener('click', function () {
-    var r = looksResult || tasteResult || synastryResult;
+    var r = heightResult || looksResult || tasteResult || synastryResult;
     if (r) showResult(r);
   });
 
@@ -666,9 +858,9 @@
     $('mVerdict').textContent = r.verdict;
     $('mBig3').innerHTML = '<b>you:</b> ' + r.you.sun + ' Sun · ' + r.you.moon + ' Moon · ' + r.you.rising + ' rising' +
       '<br><b>anna:</b> ' + r.anna.sun + ' Sun · ' + r.anna.moon + ' Moon · ' + r.anna.rising + ' rising';
-    $('mGreen').innerHTML = r.green.map(function (f) { return '<li>💖 ' + f.text + ' <b>(+' + f.pts + ')</b></li>'; }).join('') ||
+    $('mGreen').innerHTML = r.green.map(function (f) { return '<li>' + heartSVG(false) + ' ' + f.text + ' <b>(+' + f.pts + ')</b></li>'; }).join('') ||
       '<li>…the stars found no green flags. oof.</li>';
-    $('mRed').innerHTML = r.red.map(function (f) { return '<li>💔 ' + f.text + ' <b>(' + f.pts + ')</b></li>'; }).join('') ||
+    $('mRed').innerHTML = r.red.map(function (f) { return '<li>' + heartSVG(true) + ' ' + f.text + ' <b>(' + f.pts + ')</b></li>'; }).join('') ||
       '<li>no red flags?? suspicious but okay.</li>';
     $('mFine').textContent = 'full-chart synastry · ' + r.aspectCount + ' cross-aspects · 10 planets + rising · tropical zodiac';
     $('overlay').style.display = 'flex';
@@ -683,7 +875,7 @@
      works standalone; its NEXT still needs a real stage-1 run). ?test=1
      auto-fills the form and clicks NEXT. ---- */
   var stageParam = +new URLSearchParams(location.search).get('stage');
-  if (stageParam >= 2) goStage(Math.min(stageParam, 3));
+  if (stageParam >= 2) goStage(Math.min(stageParam, 4));
   if (new URLSearchParams(location.search).get('test')) {
     $('bMonth').value = 3; $('bDay').value = 3;
     $('bYear').value = +new URLSearchParams(location.search).get('year') || 2000;
@@ -692,5 +884,11 @@
     selected = { lat: 40.6501, lon: -73.94958, tz: 'America/New_York' };
     locInput.value = 'Brooklyn, New York, US';
     setTimeout(function () { $('nextBtn').click(); }, 400);
+    // &movies=N marks N shelf cases seen and runs the stage-2 reveal too
+    var nMovies = +new URLSearchParams(location.search).get('movies');
+    if (nMovies) setTimeout(function () {
+      document.querySelectorAll('.case').forEach(function (c, i) { if (i < nMovies) c.click(); });
+      $('nextBtn2').click();
+    }, 3200);
   }
 })();

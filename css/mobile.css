@@ -1,0 +1,178 @@
+/* Mobile layer (phones, ≤700px). Loaded AFTER landing.css / survey.css so it
+   only overrides — desktop rendering is untouched.
+
+   The mobile thesis: Anna is the screen. She stays big and centered the whole
+   time so you watch her react while you type; every stage's controls live in
+   a sticky bottom sheet / strip, thumb range. */
+
+@media (max-width: 700px) {
+
+  /* ================= landing (index.html) ================= */
+
+  .photo { width: min(88vw, calc((100vh - 320px) * 1.3333)); }
+
+  footer { padding: 12px 12px calc(20px + env(safe-area-inset-bottom)); }
+
+  .candy {
+    font-size: 20px;
+    padding: 15px 34px;
+  }
+
+  /* ================= survey: progress rail ================= */
+
+  .map { height: 86px; }
+
+  .route {
+    top: 38px;
+    height: 14px;
+    left: max(4%, 34px);
+    right: max(4%, 34px);
+  }
+
+  .node {
+    top: 45px;
+    width: 38px;
+    height: 38px;
+    border-width: 4px;
+    font-size: 15px;
+  }
+
+  .n1 { left: max(4%, 34px); }
+  .n5 { left: calc(100% - max(4%, 34px)); }
+
+  /* stage names don't fit five-across on a phone — the glowing node says
+     where you are */
+  .lbl { display: none; }
+
+  .page { height: calc(100vh - 86px); height: calc(100dvh - 86px); }
+
+  /* ================= Anna, front and center ================= */
+
+  /* Full-height, centered, behind every sheet — her face fills the gap
+     between the rail and the controls, all stages */
+  .avatar {
+    height: 74vh;
+    height: 74dvh;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* undo the desktop corner-shrink so she stays centered on s2/s3 */
+  body.s2 .avatar,
+  body.s3 .avatar {
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
+  /* dev panels don't fit the phone screen — desktop-only */
+  .betas { display: none; }
+
+  #moreInfo {
+    bottom: auto;
+    top: 96px;
+    right: 8px;
+  }
+
+  /* ================= stage 1: birth card = bottom sheet ================= */
+
+  .card {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: auto;
+    max-height: 64vh;
+    max-height: 64dvh;
+    overflow-y: auto;
+    z-index: 6;
+    border-radius: 22px 22px 0 0;
+    border-bottom: 0;
+    box-shadow: 0 -8px 26px rgba(120, 20, 80, .4);
+    padding: 16px 18px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  /* the sheet sits at the screen bottom, so suggestions must open upward */
+  #locList {
+    top: auto;
+    bottom: 100%;
+    margin: 0 0 4px;
+  }
+
+  /* ================= stage 2: horizontal film strip ================= */
+
+  body.s2 #stage2 {
+    inset: 0;
+    z-index: 3;
+  }
+
+  .shelfHead { margin: 2px 0 0; }
+
+  .shelfHead b { font-size: 19px; letter-spacing: 2px; }
+
+  .shelfHead span { font-size: 12px; }
+
+  /* .shelf is display:contents on desktop (rows keep their grid); here it
+     becomes one thumb-scrollable strip and the rows dissolve into it */
+  .shelf {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    align-items: end;
+    gap: 14px;
+    margin-top: auto;
+    padding: 20px 18px 2px;
+    border-bottom: 12px solid transparent;
+    border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 12px 0;
+  }
+
+  .shelfRow {
+    display: contents;
+  }
+
+  .case {
+    flex: 0 0 auto;
+    width: 34vw;
+    max-width: 160px;
+    scroll-snap-align: center;
+    margin-bottom: 6px;
+  }
+
+  /* no hover on touch: picked lift is the only resting transform */
+  .case.picked:not(:hover) { transform: translateY(-6px); }
+
+  .shelfFoot {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    justify-content: space-between;
+  }
+
+  #faves {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    width: 94vw;
+  }
+
+  /* ================= stage 3: looks match ================= */
+
+  body.s3 #stage3 { inset: 0 4% 1%; }
+
+  .booth,
+  .lmDrop { width: min(92vw, 54vh); }
+
+  .lmUpload { gap: 14px; }
+
+  /* the paired polaroids shrink to sit side by side on a phone */
+  .pol {
+    width: min(40vw, 38vh);
+    padding: 8px 8px 30px;
+  }
+
+  .lmStage .shelfFoot,
+  #stage3 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+
+  /* ================= stage 4: height check ================= */
+
+  body.s4 #stage4 { z-index: 3; }
+
+  #stage4 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}

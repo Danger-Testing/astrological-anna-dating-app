@@ -151,7 +151,11 @@ var Looks = (function () {
       score: score,
       matched: score >= MATCH_AT,
       flags: flags,
-      stats: { skinLuma: Math.round(skinLuma), hairLuma: hairLuma && Math.round(hairLuma), eyeLuma: eyeLuma && Math.round(eyeLuma), symScore: +symScore.toFixed(2), contrast: Math.round(sd) }
+      stats: {
+        skinLuma: Math.round(skinLuma), hairLuma: hairLuma && Math.round(hairLuma), eyeLuma: eyeLuma && Math.round(eyeLuma), symScore: +symScore.toFixed(2), contrast: Math.round(sd),
+        // normalized face box (0-1 of the photo) — stage 4 crops the standee head from this
+        face: { x0: fx0 / W, x1: fx1 / W, y0: fy0 / H, y1: fy1 / H }
+      }
     };
   }
 
