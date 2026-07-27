@@ -257,6 +257,7 @@
   position: absolute;
   left: 5%;
   bottom: 5%;
+  z-index: 12; /* above the 3D-transformed shelf cases so buttons stay clickable in stage 2 */
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -264,16 +265,45 @@
   max-width: 350px;
 }
 
-.moods,
-.anims {
+.betaPanel {
   padding: 12px;
   background: var(--pink-soft);
   border: 3px solid var(--pink);
   border-radius: 15px;
 }
 
-.moods button,
-.anims button {
+.betaHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-weight: bold;
+}
+
+.betaToggle {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid var(--pink);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--pink-heading);
+  font-weight: bold;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.betaToggle:hover {
+  background: var(--pink);
+  color: #fff;
+}
+
+.betaPanel.closed .betaBody { display: none; }
+
+.betaBody { margin-top: 6px; }
+
+.betaBody button {
   margin: 3px;
   border-radius: 7px;
   border: 2px solid var(--pink);
@@ -282,8 +312,7 @@
   cursor: pointer;
 }
 
-.moods button.on,
-.anims button.on {
+.betaBody button.on {
   background: var(--pink);
   color: #fff;
 }
@@ -301,32 +330,76 @@
   will-change: transform, opacity;
 }
 
-/* arrows: pink glowing arrows rising from below the fold */
-.fx-arrow {
+/* hearts: pink hearts drifting up from below the fold, swaying as they rise */
+.fx-heart {
   top: 100%;
   color: var(--pink);
   font-weight: bold;
-  text-shadow: 0 0 12px rgba(241, 78, 152, .85), 2px 2px 0 var(--pink-dark);
-  animation: fxRise linear infinite;
+  text-shadow: 0 0 14px rgba(241, 78, 152, .9), 0 2px 0 var(--pink-dark);
+  animation: fxHeart linear infinite;
 }
 
-@keyframes fxRise {
-  from { transform: translateY(0); opacity: 1; }
-  80%  { opacity: 1; }
-  to   { transform: translateY(-115vh); opacity: 0; }
+@keyframes fxHeart {
+  0%   { transform: translate(0, 0) scale(.9) rotate(-6deg); opacity: 0; }
+  6%   { opacity: 1; }
+  25%  { transform: translate(22px, -30vh) scale(1.08) rotate(7deg); }
+  50%  { transform: translate(-18px, -60vh) scale(1.16) rotate(-7deg); }
+  75%  { transform: translate(16px, -90vh) scale(1.06) rotate(6deg); opacity: 1; }
+  100% { transform: translate(-8px, -118vh) scale(.95) rotate(-4deg); opacity: 0; }
 }
 
-/* boom: explosions popping in and out at random spots */
-.fx-boom {
+/* boom: CSS-drawn explosions — hot fireball core, expanding shockwave ring,
+   and glowing debris flung outward; every layer in a site shares one
+   animation timeline (same duration/delay) so the phases stay in sync */
+.fx-boomSite { transform: translate(-50%, -50%); }
+
+.fx-boomSite i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
   opacity: 0;
-  animation: fxBoom ease-out infinite;
 }
 
-@keyframes fxBoom {
-  0%, 58%   { transform: scale(0); opacity: 0; }
-  66%       { transform: scale(1.35); opacity: 1; }
-  78%       { transform: scale(1); opacity: 1; }
-  92%, 100% { transform: scale(1.7); opacity: 0; }
+.fx-boomSite .fireball {
+  background: radial-gradient(circle, #fff 0%, #ffe37a 16%, #ffab2e 36%, #f1440e 58%, rgba(70, 18, 8, .85) 76%, transparent 82%);
+  animation: fxFireball ease-out infinite;
+}
+
+@keyframes fxFireball {
+  0%, 54%   { transform: scale(0); opacity: 0; filter: brightness(3); }
+  58%       { transform: scale(.55); opacity: 1; filter: brightness(2.6); }
+  70%       { transform: scale(1); opacity: 1; filter: brightness(1.4); }
+  82%       { transform: scale(1.22); opacity: .75; filter: brightness(.8) saturate(.6); }
+  94%, 100% { transform: scale(1.45); opacity: 0; filter: brightness(.45) saturate(.35); }
+}
+
+.fx-boomSite .shock {
+  border: 4px solid rgba(255, 224, 150, .9);
+  box-shadow: 0 0 18px 4px rgba(255, 160, 60, .7), inset 0 0 12px rgba(255, 200, 100, .6);
+  animation: fxShock ease-out infinite;
+}
+
+@keyframes fxShock {
+  0%, 55%   { transform: scale(0); opacity: 0; }
+  60%       { transform: scale(.4); opacity: .9; }
+  86%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+.fx-boomSite .frag {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  background: radial-gradient(circle, #ffd977, #f1440e 70%);
+  box-shadow: 0 0 8px 2px rgba(255, 140, 40, .8);
+  animation: fxFrag ease-out infinite;
+}
+
+@keyframes fxFrag {
+  0%, 56%  { transform: translate(0, 0) scale(1); opacity: 0; }
+  61%      { opacity: 1; }
+  100%     { transform: translate(var(--dx), var(--dy)) scale(.15); opacity: 0; }
 }
 
 /* fire: flame row licking up from the bottom edge + rising embers */
@@ -364,8 +437,11 @@
   to { transform: translateY(350%); }
 }
 
+/* splash: CSS-drawn white foam puffs bursting along the bottom edge */
 .fx-splash {
-  bottom: 0;
+  bottom: -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 65%, rgba(255, 255, 255, .95), rgba(210, 240, 255, .55) 45%, rgba(170, 225, 255, 0) 72%);
   opacity: 0;
   transform-origin: 50% 100%;
   animation: fxSplash ease-out infinite;
@@ -375,6 +451,25 @@
   0%, 55% { transform: scale(.3); opacity: 0; }
   68%     { transform: scale(1.2); opacity: 1; }
   100%    { transform: scale(1.6) translateY(-12px); opacity: 0; }
+}
+
+/* fine spray droplets kicked up out of the foam, arcing back down */
+.fx-drop {
+  bottom: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(235, 250, 255, .95);
+  box-shadow: 0 0 6px rgba(190, 235, 255, .8);
+  opacity: 0;
+  animation: fxDrop ease-out infinite;
+}
+
+@keyframes fxDrop {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+  15%  { opacity: 1; }
+  55%  { transform: translate(calc(var(--dx) * .7), -72px) scale(.9); opacity: 1; }
+  100% { transform: translate(var(--dx), -8px) scale(.55); opacity: 0; }
 }
 
 /* sparkles: twinkling scattered across the sky */
@@ -492,11 +587,12 @@
    Anna into the corner (transform so it animates; feet stay on the floor). */
 #stage2 { display: none; }
 
+/* Shelf hugs the left (right inset leaves the corner clear for Anna) */
 body.s2 #stage2 {
   display: flex;
   flex-direction: column;
   position: absolute;
-  inset: 0 3% 2%;
+  inset: 0 21% 2% 3%;
   z-index: 3;
 }
 
@@ -507,9 +603,13 @@ body.s2 .card { display: none; }
   transition: transform .6s cubic-bezier(.5, 1.4, .4, 1);
 }
 
+/* Anna sits above the shelf (but under #moreInfo z15 / overlay z20 / reveal
+   z30) so her face and reactions stay visible; pointer-events off so she
+   never blocks a poster click */
 body.s2 .avatar {
-  transform: translateX(-50%) translateX(41vw) scale(.42);
-  z-index: 0;
+  transform: translateX(-50%) translateX(37vw) scale(.5);
+  z-index: 4;
+  pointer-events: none;
 }
 
 .shelfHead {
@@ -536,11 +636,11 @@ body.s2 .avatar {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0 1.4vw;
+  gap: 0 .6vw;
   justify-items: center;
   align-items: end;
   perspective: 1100px;
-  padding: 14px 3% 0;
+  padding: 14px 1% 0;
   border-bottom: 14px solid transparent;
   border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 14px 0;
 }
@@ -665,3 +765,92 @@ body.s2 .avatar {
   color: var(--pink-deep);
   cursor: pointer;
 }
+
+/* ---- Compatibility reveal: flashes between stages ---- */
+#reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: rgba(60, 5, 35, .55);
+  backdrop-filter: blur(4px);
+  pointer-events: none; /* a flash, never a blocker */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .45s, visibility .45s;
+}
+
+#reveal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ringWrap {
+  position: relative;
+  width: min(46vh, 340px);
+  height: min(46vh, 340px);
+}
+
+.ringWrap svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* fill starts from 12 o'clock */
+}
+
+.ringBg,
+.ringFill {
+  fill: none;
+  stroke-width: 11;
+  stroke-linecap: round;
+}
+
+.ringBg { stroke: rgba(255, 255, 255, .28); }
+
+.ringFill {
+  stroke: var(--pink);
+  filter: drop-shadow(0 0 10px rgba(241, 78, 152, .9));
+}
+
+.ringPct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: min(11vh, 82px);
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 2px 2px 0 var(--pink-dark), 0 4px 10px rgba(0, 0, 0, .4);
+}
+
+.ringLabel {
+  font-weight: bold;
+  font-size: 20px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 6px rgba(0, 0, 0, .5);
+}
+
+/* ---- Tiny "more info" escape hatch for the old modal (temporary) ---- */
+#moreInfo {
+  position: fixed;
+  right: 10px;
+  bottom: 8px;
+  z-index: 15;
+  display: none;
+  padding: 4px 9px;
+  font-size: 10px;
+  color: var(--pink-heading);
+  background: rgba(255, 255, 255, .75);
+  border: 1px solid var(--pink-border);
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: .7;
+}
+
+#moreInfo:hover { opacity: 1; }

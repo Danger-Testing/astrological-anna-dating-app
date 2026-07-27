@@ -1,11 +1,11 @@
 /* Survey page: Emotion Beta swapper, birth-detail pickers, city autocomplete,
-   and the NEXT -> compatibility modal (testing flow).
-   Depends on assets/synastry.js (global `Synastry`). */
+   the between-stage compatibility reveal, and the full report modal (behind
+   the tiny "more info" button). Depends on assets/synastry.js (global `Synastry`). */
 (function () {
   var $ = function (id) { return document.getElementById(id); };
 
   /* ---- Emotion Beta: swap Anna's portrait, toggle steam while angry ---- */
-  var moodButtons = document.querySelectorAll('.moods button');
+  var moodButtons = document.querySelectorAll('.moods button[data-img]');
   moodButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
       $('anna').src = 'assets/' + btn.dataset.img + '.png';
@@ -14,7 +14,7 @@
       btn.classList.add('on');
     });
   });
-  /* ---- Animation Beta: layered FX behind Anna (arrows, boom, fire, waterfall, sparkles) ---- */
+  /* ---- Animation Beta: layered FX behind Anna (hearts, boom, fire, waterfall, sparkles) ---- */
   var fx = $('fx');
   function rnd(a, b) { return a + Math.random() * (b - a); }
   // Spawns n <span>s into the FX layer; setup(el, i) styles each one.
@@ -29,25 +29,38 @@
   }
   var EFFECTS = {
     none: function () {},
-    arrows: function () {
-      spawn(14, function (s) {
-        s.className = 'fx-arrow';
-        s.textContent = '⬆';
+    hearts: function () {
+      spawn(22, function (s) {
+        s.className = 'fx-heart';
+        s.textContent = '♥';
         s.style.left = rnd(0, 96) + '%';
-        s.style.fontSize = rnd(26, 64) + 'px';
-        s.style.animationDuration = rnd(2.4, 5.5) + 's';
-        s.style.animationDelay = -rnd(0, 5.5) + 's';
+        s.style.fontSize = rnd(24, 68) + 'px';
+        s.style.animationDuration = rnd(3, 6.5) + 's';
+        s.style.animationDelay = -rnd(0, 6.5) + 's';
       });
     },
+    // CSS-drawn explosions: each site is a fireball + shockwave ring + debris
+    // sharing one animation timeline so the phases line up
     boom: function () {
-      spawn(12, function (s) {
-        s.className = 'fx-boom';
-        s.textContent = '💥';
-        s.style.left = rnd(2, 88) + '%';
-        s.style.top = rnd(4, 72) + '%';
-        s.style.fontSize = rnd(40, 110) + 'px';
-        s.style.animationDuration = rnd(1.8, 3.6) + 's';
-        s.style.animationDelay = -rnd(0, 3.6) + 's';
+      spawn(9, function (s) {
+        s.className = 'fx-boomSite';
+        var size = rnd(100, 230);
+        s.style.left = rnd(4, 86) + '%';
+        s.style.top = rnd(6, 62) + '%';
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        var html = '<i class="fireball"></i><i class="shock"></i>';
+        for (var k = 0; k < 7; k++) {
+          var ang = rnd(0, Math.PI * 2), dist = rnd(size * .5, size * 1.1);
+          html += '<i class="frag" style="--dx:' + Math.round(Math.cos(ang) * dist) +
+            'px;--dy:' + Math.round(Math.sin(ang) * dist * .8 - 40) + 'px"></i>';
+        }
+        s.innerHTML = html;
+        var dur = rnd(1.9, 3.4) + 's', delay = -rnd(0, 3.4) + 's';
+        s.querySelectorAll('i').forEach(function (el) {
+          el.style.animationDuration = dur;
+          el.style.animationDelay = delay;
+        });
       });
     },
     fire: function () {
@@ -74,13 +87,21 @@
         s.style.animationDuration = rnd(1.1, 2.2) + 's';
         s.style.animationDelay = -rnd(0, 2.2) + 's';
       });
-      spawn(8, function (s) {
+      spawn(10, function (s) {
         s.className = 'fx-splash';
-        s.textContent = '💦';
-        s.style.left = rnd(2, 90) + '%';
-        s.style.fontSize = rnd(28, 60) + 'px';
-        s.style.animationDuration = rnd(1.4, 2.6) + 's';
-        s.style.animationDelay = -rnd(0, 2.6) + 's';
+        var w = rnd(60, 130);
+        s.style.left = rnd(0, 92) + '%';
+        s.style.width = w + 'px';
+        s.style.height = (w * .55) + 'px';
+        s.style.animationDuration = rnd(1.2, 2.4) + 's';
+        s.style.animationDelay = -rnd(0, 2.4) + 's';
+      });
+      spawn(14, function (s) {
+        s.className = 'fx-drop';
+        s.style.left = rnd(1, 97) + '%';
+        s.style.setProperty('--dx', rnd(-40, 40).toFixed(0) + 'px');
+        s.style.animationDuration = rnd(.9, 1.8) + 's';
+        s.style.animationDelay = -rnd(0, 1.8) + 's';
       });
     },
     sparkles: function () {
@@ -95,7 +116,7 @@
       });
     }
   };
-  var animButtons = document.querySelectorAll('.anims button');
+  var animButtons = document.querySelectorAll('.anims button[data-fx]');
   animButtons.forEach(function (btn) {
     btn.addEventListener('click', function () {
       fx.innerHTML = '';
@@ -103,6 +124,20 @@
       animButtons.forEach(function (b) { b.classList.remove('on'); });
       btn.classList.add('on');
     });
+  });
+
+  /* ---- Beta panels: hide/show toggles (state remembered per panel) ---- */
+  document.querySelectorAll('.betaPanel').forEach(function (panel) {
+    var key = 'annaBetaClosed:' + panel.id;
+    var toggle = panel.querySelector('.betaToggle');
+    function apply(closed) {
+      panel.classList.toggle('closed', closed);
+      toggle.textContent = closed ? '+' : '–';
+      toggle.setAttribute('aria-label', (closed ? 'show' : 'hide') + ' panel');
+      try { localStorage.setItem(key, closed ? '1' : ''); } catch (e) {}
+    }
+    toggle.addEventListener('click', function () { apply(!panel.classList.contains('closed')); });
+    try { if (localStorage.getItem(key) === '1') apply(true); } catch (e) {}
   });
 
   // #love, #angry, #fire, etc. in the URL preselects that mood or effect
@@ -225,6 +260,45 @@
     if (document.body.classList.contains('s2')) goStage(1);
   });
 
+  /* ---- Compatibility reveal: ring + % flashed between stages ----
+     Anna reacts to the score: high = love, low = sad, really low = scared. */
+  function setMood(img) {
+    var btn = document.querySelector('.moods button[data-img="' + img + '"]');
+    if (btn) btn.click();
+  }
+  function moodFor(pct) {
+    if (pct >= 70) return 'love';
+    if (pct >= 40) return 'portrait-cutout';
+    if (pct >= 20) return 'sad';
+    return 'scared';
+  }
+  var RING_C = 2 * Math.PI * 54; // circumference of the r=54 ring
+  var revealing = false;
+  function playReveal(r, after) {
+    if (revealing) return;
+    revealing = true;
+    var reveal = $('reveal'), fill = $('ringFill'), pctEl = $('ringPct');
+    fill.style.strokeDasharray = RING_C;
+    fill.style.strokeDashoffset = RING_C;
+    pctEl.textContent = '0%';
+    reveal.classList.add('show');
+    var DURATION = 1300, start = null;
+    function tick(now) {
+      if (!start) start = now;
+      var t = Math.min((now - start) / DURATION, 1);
+      var eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      var val = Math.round(r.percent * eased);
+      pctEl.textContent = val + '%';
+      fill.style.strokeDashoffset = RING_C * (1 - val / 100);
+      if (t < 1) requestAnimationFrame(tick);
+      else setMood(moodFor(r.percent)); // she reacts once the number lands
+    }
+    requestAnimationFrame(tick);
+    // swap the stage underneath the flash, then fade it out
+    setTimeout(function () { if (after) after(); }, 1500);
+    setTimeout(function () { reveal.classList.remove('show'); revealing = false; }, 2100);
+  }
+
   /* ---- NEXT: validate, compute synastry, advance to the movie test ---- */
   document.querySelector('.card').addEventListener('submit', function (e) { e.preventDefault(); });
   var synastryResult = null;
@@ -244,12 +318,18 @@
     }
     var h24 = (h12 % 12) + (pm ? 12 : 0);
     synastryResult = Synastry.compute({ y: y, mo: mo, d: d, h: h24, mi: mi, lat: selected.lat, lon: selected.lon, tz: selected.tz });
-    goStage(2);
+    $('moreInfo').style.display = 'block';
+    playReveal(synastryResult, function () { goStage(2); });
   });
 
-  // stage 2 NEXT: stages 3-5 don't exist yet, so show the compatibility
-  // modal here for now (movie taste doesn't move the score yet)
+  // stage 2 NEXT: stages 3-5 don't exist yet, so just replay the reveal
+  // (movie taste doesn't move the score yet)
   $('nextBtn2').addEventListener('click', function () {
+    if (synastryResult) playReveal(synastryResult);
+  });
+
+  // temporary escape hatch to the full synastry report
+  $('moreInfo').addEventListener('click', function () {
     if (synastryResult) showResult(synastryResult);
   });
 
@@ -271,7 +351,7 @@
     if (e.target.id === 'overlay') e.target.style.display = 'none';
   });
 
-  /* ---- Dev hook: ?test=1 auto-fills the form and opens the modal ---- */
+  /* ---- Dev hook: ?test=1 auto-fills the form and clicks NEXT ---- */
   if (new URLSearchParams(location.search).get('test')) {
     $('bMonth').value = 3; $('bDay').value = 3; $('bYear').value = 2000;
     $('bHour').value = 10; $('bMin').value = 0;

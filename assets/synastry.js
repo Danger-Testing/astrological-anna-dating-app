@@ -105,14 +105,24 @@
       else if (feeds(eu, ea)) mods.push({ text: 'Your ' + k + ' (' + su + ', ' + eu + ') feeds Anna’s ' + k + ' (' + sa + ', ' + ea + ')', pts: 3, good: true });
       else mods.push({ text: 'Your ' + k + ' (' + su + ', ' + eu + ') clashes with Anna’s ' + k + ' (' + sa + ', ' + ea + ')', pts: -4, good: false });
     });
+    // age gate: Anna is 29; her preferred range is 26-33 (see SYNASTRY-NOTES.md)
+    var age = Math.floor((Date.now() - cu.date.getTime()) / 31557600000);
+    var teen = age < 20;
+    if (teen) mods.push({ text: 'you are ' + age + ' — a teenager. instant zero, no appeal process', pts: -100, good: false });
+    else if (age >= 26 && age <= 33) mods.push({ text: 'age ' + age + ' — squarely in Anna’s preferred range (26–33)', pts: 3, good: true });
+    else if (age < 26) mods.push({ text: 'age ' + age + ' — younger than Anna’s preferred range (26–33)', pts: -(26 - age) * 3, good: false });
+    else if (age <= 37) mods.push({ text: 'age ' + age + ' — older than Anna’s preferred range (26–33)', pts: -(age - 33) * 3, good: false });
+    else mods.push({ text: 'age ' + age + ' — well past Anna’s preferred range (26–33)', pts: -Math.min(12 + (age - 37) * 4, 35), good: false });
     var modSum = mods.reduce(function (s, m) { return s + m.pts; }, 0);
     var raw = 50 + score / 2.2 + modSum;
     var pct = Math.round(50 + (raw - 50) * 1.15); // stretch for more spread
     pct = Math.max(2, Math.min(99, pct));
+    if (teen) pct = 0;
     mods.forEach(function (m) { m.pts = Math.round(m.pts * 10) / 10; });
     found = found.concat(mods);
     found.sort(function (a, b) { return Math.abs(b.pts) - Math.abs(a.pts); });
-    var verdict = pct >= 80 ? 'Anna might actually want to date you.'
+    var verdict = teen ? 'You are a teenager. The universe (and the law) said absolutely not.'
+      : pct >= 80 ? 'Anna might actually want to date you.'
       : pct >= 60 ? 'The stars are… intrigued. There is something here.'
       : pct >= 40 ? 'The stars say: mid. Proceed with caution.'
       : pct >= 20 ? 'Venus is fighting for her life here.'

@@ -69,12 +69,27 @@ These are Anna's stated preferences, layered on top of the aspect math:
   | Complementary element (fire↔air, earth↔water) | +3 |
   | Anything else | −4 |
 
+## Age gate
+
+Anna is 29. Her preferred range is **26–33**. Age is computed from the birth date
+at the moment of the reading:
+
+| Age | Effect |
+|---|---|
+| Under 20 | **Score is a hard 0.** No synastry can save you. The universe (and the law) said absolutely not. |
+| 20–25 | −3 points per year below 26 |
+| 26–33 | +3 (squarely in range) |
+| 34–37 | −3 points per year above 33 |
+| 38+ | −12, plus −4 per year past 37, capped at −35 |
+
 ## Final score
 
 ```
-percent = 50 + (aspect score ÷ 2.2) + air bonus − water penalty + Moon/Venus/Mars chemistry
+percent = 50 + (aspect score ÷ 2.2) + air bonus − water penalty
+          + Moon/Venus/Mars chemistry + age adjustment
 ```
-clamped to 2–99 (never 0, never 100 — the stars don't deal in absolutes).
+then stretched ×1.15 around 50 for spread, clamped to 2–99 (never 100 — the stars
+don't deal in absolutes; the only true 0 is the teenager gate).
 
 ## Verdict tiers
 

@@ -71,6 +71,15 @@
       </header>
       <div class="shelfRow" id="shelfRow1"></div>
       <div class="shelfRow" id="shelfRow2"></div>
+      <!-- shown by NEXT when they've seen 3 or fewer: Anna demands favorites instead -->
+      <div id="faves">
+        <b>seen that few?? okay… type your favorite movies so Anna can judge those instead <i>(minimum 2)</i></b>
+        <div class="locwrap">
+          <input id="favInput" placeholder="start typing a movie" autocomplete="off">
+          <div id="favList"></div>
+        </div>
+        <div id="favChips"></div>
+      </div>
       <footer class="shelfFoot">
         <span class="seen" id="seenCount">0 / 12 seen</span>
         <button type="button" class="next" id="nextBtn2">NEXT →</button>
@@ -78,26 +87,45 @@
     </section>
 
     <div class="betas">
-      <div class="anims">
-        ANIMATION BETA<br>
-        <button type="button" class="on" data-fx="none">none</button>
-        <button type="button" data-fx="arrows">⬆ arrows</button>
-        <button type="button" data-fx="boom">💥 boom</button>
-        <button type="button" data-fx="fire">🔥 fire</button>
-        <button type="button" data-fx="waterfall">🌊 waterfall</button>
-        <button type="button" data-fx="sparkles">✨ sparkles</button>
+      <div class="anims betaPanel" id="animsPanel">
+        <div class="betaHead">ANIMATION BETA <button type="button" class="betaToggle" aria-label="hide panel">–</button></div>
+        <div class="betaBody">
+          <button type="button" class="on" data-fx="none">none</button>
+          <button type="button" data-fx="hearts">♥ hearts</button>
+          <button type="button" data-fx="boom">💥 boom</button>
+          <button type="button" data-fx="fire">🔥 fire</button>
+          <button type="button" data-fx="waterfall">🌊 waterfall</button>
+          <button type="button" data-fx="sparkles">✨ sparkles</button>
+        </div>
       </div>
-      <div class="moods">
-        EMOTION BETA<br>
-        <button type="button" class="on" data-img="portrait-cutout">neutral</button>
-        <button type="button" data-img="love">♥ love</button>
-        <button type="button" data-img="sad">sad</button>
-        <button type="button" data-img="scared">scared</button>
-        <button type="button" data-img="angry">😤 angry</button>
+      <div class="moods betaPanel" id="moodsPanel">
+        <div class="betaHead">EMOTION BETA <button type="button" class="betaToggle" aria-label="hide panel">–</button></div>
+        <div class="betaBody">
+          <button type="button" class="on" data-img="portrait-cutout">neutral</button>
+          <button type="button" data-img="love">♥ love</button>
+          <button type="button" data-img="sad">sad</button>
+          <button type="button" data-img="scared">scared</button>
+          <button type="button" data-img="angry">😤 angry</button>
+        </div>
       </div>
     </div>
 
   </main>
+
+  <!-- Compatibility reveal: ring + % flashed between stages -->
+  <div id="reveal" aria-hidden="true">
+    <div class="ringWrap">
+      <svg viewBox="0 0 120 120">
+        <circle class="ringBg" cx="60" cy="60" r="54"/>
+        <circle class="ringFill" id="ringFill" cx="60" cy="60" r="54"/>
+      </svg>
+      <div class="ringPct" id="ringPct">0%</div>
+    </div>
+    <div class="ringLabel">cosmic compatibility</div>
+  </div>
+
+  <!-- Temporary: full synastry report lives behind this until stages are done -->
+  <button type="button" id="moreInfo">ⓘ more info</button>
 
   <!-- Compatibility result modal -->
   <div id="overlay">

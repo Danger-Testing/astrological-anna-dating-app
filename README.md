@@ -61,7 +61,7 @@ PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 
 ## Known limitations (honest state of things)
 
-- The **NEXT button opens a testing modal**, not the real stage-2 flow — the compatibility report is the placeholder end state for now; survey stages 2-5 don't exist yet.
+- **NEXT flashes the compatibility reveal** (animated ring + counting %, Anna reacts: ≥70 love, 40-69 neutral, 20-39 sad, <20 scared) then advances the stage. The full synastry report modal now hides behind the tiny **ⓘ more info** button (bottom-right, temporary, appears after the first computation). Stages 3-5 don't exist yet, so stage 2's NEXT just replays the reveal.
 - Location autocomplete uses **Open-Meteo geocoding** (free, no key) rather than Google Places; it returns lat/lon + IANA timezone, which the chart math needs. Swap in Google later if desired (needs an API key).
 - The synastry scoring weights/orbs are hand-rolled and tuned for fun, not certified by an astrologer.
 - Not deployed anywhere; local only.
