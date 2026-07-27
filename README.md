@@ -19,11 +19,16 @@ Or just open `index.html` directly in a browser.
 ## Project structure
 
 ```
-index.html            The entire app: styles + markup in one file, no framework
+index.html            Landing page: "ANNA DOESN'T WANT TO DATE YOU", party photo with
+                      the guy scissored out (white CSS clip-path cutout), "this could
+                      be you" arrow, sticky glossy candy button -> survey.html
+survey.html           The survey: level-map progress rail, Anna portrait, birth
+                      date/time/location card, working Emotion Beta expression swapper
 stars.mp4             Looping blue star-field video, used as the full-bleed background
 assets/
+  party-photo.jpg     Party photo used on the landing page collage
   portrait.png        Anna's original portrait (with background)
-  portrait-cutout.png Anna's transparent-background cutout — the one index.html uses
+  portrait-cutout.png Anna's transparent-background cutout (neutral expression)
   love.png            Expression variant for the Emotion Beta (love)
   sad.png             Expression variant (sad)
   scared.png          Expression variant (scared)
