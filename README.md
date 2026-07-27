@@ -22,8 +22,10 @@ Or just open `index.html` directly in a browser.
 index.html            Landing page: "ANNA DOESN'T WANT TO DATE YOU", party photo with
                       the guy scissored out (white CSS clip-path cutout), "this could
                       be you" arrow, sticky glossy candy button -> survey.html
-survey.html           The survey: level-map progress rail, Anna portrait, birth
-                      date/time/location card, working Emotion Beta expression swapper
+survey.html           The survey: level-map progress rail, Anna portrait, DSi-style
+                      birth card (month/day/year + hh:mm + AM/PM pickers), city
+                      autocomplete, Emotion Beta swapper, and the NEXT compatibility
+                      modal (testing flow)
 stars.mp4             Looping blue star-field video, used as the full-bleed background
 assets/
   party-photo.jpg     Party photo used on the landing page collage
@@ -35,6 +37,11 @@ assets/
   angry.png           Expression variant (angry: red eyes, steam from ears)
   steam-left.png      Steam cloud layers cropped from angry.png; CSS-animated
   steam-right.png     (puffing loop) over the ears while angry is selected
+  astronomy.browser.min.js  Vendored astronomy-engine (MIT) — real ephemeris math
+  synastry.js         Full-chart tropical synastry: builds both natal charts (10
+                      planets + Ascendant), cross-aspects them, scores 0-100.
+                      Anna's birth data lives here: 1996-10-19 21:36,
+                      Fredericton NB, Canada (America/Moncton)
 PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 ```
 
@@ -48,9 +55,9 @@ PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 
 ## Known limitations (honest state of things)
 
-- The **NEXT button doesn't advance** — there's no state, validation, or persistence; the survey stages beyond stage 1 don't exist yet.
-- **Birth Location is a plain text field** — no Google Places / autocomplete (needs an API key and a privacy decision).
-- Birth Date and Birth Time are **unvalidated free-text inputs**.
+- The **NEXT button opens a testing modal**, not the real stage-2 flow — the compatibility report is the placeholder end state for now; survey stages 2-5 don't exist yet.
+- Location autocomplete uses **Open-Meteo geocoding** (free, no key) rather than Google Places; it returns lat/lon + IANA timezone, which the chart math needs. Swap in Google later if desired (needs an API key).
+- The synastry scoring weights/orbs are hand-rolled and tuned for fun, not certified by an astrologer.
 - Not deployed anywhere; local only.
 
 ## Intended direction / next steps
