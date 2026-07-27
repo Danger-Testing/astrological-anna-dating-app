@@ -1,132 +1,94 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Astrological Anna — Survey</title><style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#edfaff}
-.stars{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
-.map{height:160px;position:relative}
-.route{position:absolute;left:max(4%,52px);right:max(4%,52px);top:62px;height:20px;border-radius:12px;background:linear-gradient(#ffffff,#d9dbe2 45%,#9fa3af);border:2px solid #828692;box-shadow:0 2px 3px rgba(0,0,0,.25)}
-.node{position:absolute;top:72px;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd9e9,#f772b0 30%,#f14e98 60%,#a81260 85%);border:6px solid #e9ebf2;box-shadow:0 0 0 2px #828692,0 2px 4px rgba(0,0,0,.3),inset 0 -4px 8px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:22px;text-shadow:0 2px 3px rgba(0,0,0,.6)}
-.node.active{transform:translate(-50%,-50%) scale(1.18);box-shadow:0 0 0 2px #828692,0 0 14px 5px rgba(241,78,152,.85),0 2px 4px rgba(0,0,0,.3),inset 0 -4px 8px rgba(0,0,0,.35)}
-.lbl{position:absolute;top:112px;transform:translateX(-50%);font-weight:bold;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:#fff;text-shadow:0 1px 0 #a81260,0 2px 4px rgba(0,0,0,.45);white-space:nowrap}
-.lbl.n1{left:1%;transform:none}.lbl.n5{left:auto;right:1%;transform:none}
-.n1{left:max(4%,52px)}.n2{left:27%}.n3{left:50%}.n4{left:73%}.n5{left:calc(100% - max(4%,52px))}
-.page{height:calc(100vh - 160px);position:relative}
-.avatar{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:78vh}
-.avatar img{height:100%;object-fit:contain}
-.avatar img.steam{position:absolute;display:none;pointer-events:none;height:auto;object-fit:unset}
-.avatar.angry .steam{display:block}
-.sL{left:4.7%;top:35.9%;width:24.3%;transform-origin:95% 44%;animation:puffL 1s ease-in-out infinite}
-.sR{left:71.6%;top:36.1%;width:22.5%;transform-origin:3% 42%;animation:puffR 1s ease-in-out infinite;animation-delay:.45s}
-@keyframes puffL{50%{transform:scale(1.2) translateX(-3%)}}
-@keyframes puffR{50%{transform:scale(1.2) translateX(3%)}}
-.card{position:absolute;right:6%;top:12%;width:330px;padding:20px;background:#ffe4f0;border:3px solid #b3186b;border-radius:18px;box-shadow:7px 9px 0 rgba(120,20,80,.35)}
-.card b{display:block;margin:10px 0 6px;color:#7c1348;letter-spacing:1px}
-.card b:first-child{margin-top:0}
-.row{display:flex;gap:6px;align-items:center}
-.card select,.card input{background:#fff;border:3px solid #f2a9cd;border-radius:12px;padding:10px 8px;font-size:15px;color:#4a1030;box-shadow:inset 0 2px 4px rgba(180,60,120,.15);font-family:Arial}
-.card select:focus,.card input:focus{outline:2px solid #f14e98}
-.row select{flex:1;min-width:0}
-.row input#bMin{width:76px;flex:0 0 76px}
-.colon{font-weight:bold;color:#7c1348;font-size:18px}
-.ampm{display:flex;gap:5px}
-.ampm button{border:3px solid #f2a9cd;background:#fff;color:#7c1348;border-radius:10px;padding:9px 12px;font-weight:bold;cursor:pointer}
-.ampm button.on{background:#f14e98;border-color:#c22a7d;color:#fff}
-.locwrap{position:relative}
-.locwrap input{width:100%}
-#locList{position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:3px solid #f2a9cd;border-radius:12px;overflow:hidden;display:none;z-index:5;box-shadow:0 6px 14px rgba(120,20,80,.25)}
-#locList div{padding:9px 11px;font-size:14px;color:#4a1030;cursor:pointer}
-#locList div:hover{background:#ffd9e9}
-.next{width:100%;margin-top:16px;padding:14px;background:#f14e98;color:#fff;border:0;border-radius:14px;font-weight:bold;font-size:20px;letter-spacing:1px;cursor:pointer;box-shadow:0 6px 0 #a81260;font-family:Arial}
-.next:active{transform:translateY(4px);box-shadow:0 2px 0 #a81260}
-.moods{position:absolute;left:5%;bottom:5%;padding:12px;background:#ffd9e9;border:3px solid #f14e98;border-radius:15px}
-.moods button{margin:3px;border-radius:7px;border:2px solid #f14e98;background:white;padding:7px;cursor:pointer}
-.moods button.on{background:#f14e98;color:#fff}
-#overlay{position:fixed;inset:0;background:rgba(60,5,35,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:20}
-.modal{width:min(92vw,540px);max-height:86vh;overflow:auto;background:#ffe4f0;border:4px solid #b3186b;border-radius:22px;box-shadow:10px 12px 0 rgba(120,20,80,.4);padding:24px;color:#4a1030}
-.modal h2{margin:0 0 4px;text-align:center;color:#7c1348;letter-spacing:2px}
-.pct{text-align:center;font-size:70px;font-weight:bold;color:#f14e98;text-shadow:2px 2px 0 #a81260,0 4px 8px rgba(0,0,0,.2)}
-.verdict{text-align:center;font-size:18px;font-weight:bold;margin:4px 0 14px}
-.big3{background:#fff;border:3px solid #f2a9cd;border-radius:12px;padding:10px;font-size:14px;margin-bottom:12px;line-height:1.5}
-.modal h3{margin:12px 0 4px;color:#7c1348;font-size:15px;letter-spacing:1px}
-.modal ul{margin:0;padding-left:6px;list-style:none}
-.modal li{font-size:14px;margin:4px 0}
-.fine{font-size:11px;color:#a86e8d;text-align:center;margin:14px 0 10px}
-.closeM{display:block;margin:0 auto;padding:11px 34px;background:#f14e98;color:#fff;border:0;border-radius:12px;font-weight:bold;font-size:16px;cursor:pointer;box-shadow:0 5px 0 #a81260}
-.closeM:active{transform:translateY(3px);box-shadow:0 2px 0 #a81260}
-</style>
-<video class="stars" autoplay muted loop playsinline><source src="stars.mp4"></video>
-<nav class="map"><div class="route"></div><i class="node n1 active">1</i><i class="node n2">2</i><i class="node n3">3</i><i class="node n4">4</i><i class="node n5">5</i><em class="lbl n1">astrology</em><em class="lbl n2">book test</em><em class="lbl n3">swaggy genius</em><em class="lbl n4">height</em><em class="lbl n5">final</em></nav>
-<main class="page">
-<div class="avatar" id="av"><img id="anna" src="assets/portrait-cutout.png"><img class="steam sL" src="assets/steam-left.png" alt=""><img class="steam sR" src="assets/steam-right.png" alt=""></div>
-<form class="card" onsubmit="return false">
-<b>BIRTH DATE</b>
-<div class="row"><select id="bMonth"></select><select id="bDay"></select><select id="bYear"></select></div>
-<b>BIRTH TIME</b>
-<div class="row"><select id="bHour"></select><span class="colon">:</span><input id="bMin" type="number" min="0" max="59" placeholder="mm"><div class="ampm"><button type="button" id="amBtn">AM</button><button type="button" id="pmBtn" class="on">PM</button></div></div>
-<b>BIRTH LOCATION</b>
-<div class="locwrap"><input id="bLoc" placeholder="start typing a city" autocomplete="off"><div id="locList"></div></div>
-<button type="button" class="next" id="nextBtn">NEXT →</button>
-</form>
-<div class="moods">EMOTION BETA<br><button type="button" class="on" data-img="portrait-cutout">neutral</button><button type="button" data-img="love">♥ love</button><button type="button" data-img="sad">sad</button><button type="button" data-img="scared">scared</button><button type="button" data-img="angry">😤 angry</button></div>
-</main>
-<div id="overlay"><div class="modal">
-<h2>COSMIC COMPATIBILITY</h2>
-<div class="pct" id="mPct"></div>
-<p class="verdict" id="mVerdict"></p>
-<div class="big3" id="mBig3"></div>
-<h3>💖 GREEN FLAGS</h3><ul id="mGreen"></ul>
-<h3>💔 RED FLAGS</h3><ul id="mRed"></ul>
-<p class="fine" id="mFine"></p>
-<button class="closeM" id="closeM">close</button>
-</div></div>
-<script src="assets/astronomy.browser.min.js"></script>
-<script src="assets/synastry.js"></script>
-<script>
-// emotions
-document.querySelectorAll('.moods button').forEach(b=>b.addEventListener('click',()=>{document.getElementById('anna').src='assets/'+b.dataset.img+'.png';document.getElementById('av').classList.toggle('angry',b.dataset.img==='angry');document.querySelectorAll('.moods button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}));
-var h=location.hash.slice(1);if(h){var hb=document.querySelector('.moods button[data-img="'+h+'"]');if(hb)hb.click()}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Astrological Anna — Survey</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/survey.css">
+</head>
+<body>
 
-// pickers
-const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const fill=(id,opts,ph)=>{const s=document.getElementById(id);s.innerHTML='<option value="" disabled selected>'+ph+'</option>'+opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')};
-fill('bMonth',MONTHS.map((m,i)=>[i+1,m]),'month');
-fill('bDay',Array.from({length:31},(_,i)=>[i+1,i+1]),'day');
-fill('bYear',Array.from({length:86},(_,i)=>[2015-i,2015-i]),'year');
-fill('bHour',Array.from({length:12},(_,i)=>[i+1,i+1]),'hh');
-let pm=true;
-const amBtn=document.getElementById('amBtn'),pmBtn=document.getElementById('pmBtn');
-amBtn.onclick=()=>{pm=false;amBtn.classList.add('on');pmBtn.classList.remove('on')};
-pmBtn.onclick=()=>{pm=true;pmBtn.classList.add('on');amBtn.classList.remove('on')};
+  <video class="stars" autoplay muted loop playsinline>
+    <source src="stars.mp4">
+  </video>
 
-// location autocomplete (Open-Meteo geocoding: free, no key, returns lat/lon/timezone)
-const loc=document.getElementById('bLoc'),list=document.getElementById('locList');
-let sel=null,deb=null;
-loc.addEventListener('input',()=>{sel=null;clearTimeout(deb);const q=loc.value.trim();if(q.length<2){list.style.display='none';return}
-deb=setTimeout(async()=>{try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=5&language=en&format=json');const j=await r.json();const res=j.results||[];list.innerHTML=res.map((c,i)=>`<div data-i="${i}">${c.name}${c.admin1?', '+c.admin1:''}${c.country?', '+c.country:''}</div>`).join('')||'<div>no matches…</div>';list.style.display='block';
-list.querySelectorAll('div[data-i]').forEach(d=>d.addEventListener('mousedown',()=>{const c=res[+d.dataset.i];sel={lat:c.latitude,lon:c.longitude,tz:c.timezone};loc.value=c.name+(c.admin1?', '+c.admin1:'')+(c.country_code?', '+c.country_code:'');list.style.display='none'}))}catch(e){}},280)});
-loc.addEventListener('blur',()=>setTimeout(()=>list.style.display='none',200));
+  <!-- Level-map progress rail -->
+  <nav class="map">
+    <div class="route"></div>
+    <i class="node n1 active">1</i>
+    <i class="node n2">2</i>
+    <i class="node n3">3</i>
+    <i class="node n4">4</i>
+    <i class="node n5">5</i>
+    <em class="lbl n1">astrology</em>
+    <em class="lbl n2">book test</em>
+    <em class="lbl n3">swaggy genius</em>
+    <em class="lbl n4">height</em>
+    <em class="lbl n5">final</em>
+  </nav>
 
-// NEXT -> synastry modal (testing flow)
-const $=id=>document.getElementById(id);
-$('nextBtn').addEventListener('click',()=>{
-const mo=+$('bMonth').value,d=+$('bDay').value,y=+$('bYear').value,h12=+$('bHour').value,mi=+$('bMin').value;
-if(!mo||!d||!y){$('bMonth').focus();return}
-if(!h12||$('bHour').value===''){$('bHour').focus();return}
-if($('bMin').value===''||isNaN(mi)||mi<0||mi>59){$('bMin').focus();return}
-if(!sel){loc.focus();list.innerHTML='<div>type a city and pick it from this list ☝️</div>';list.style.display='block';setTimeout(()=>list.style.display='none',2500);return}
-const h24=(h12%12)+(pm?12:0);
-const r=Synastry.compute({y:y,mo:mo,d:d,h:h24,mi:mi,lat:sel.lat,lon:sel.lon,tz:sel.tz});
-$('mPct').textContent=r.percent+'%';
-$('mVerdict').textContent=r.verdict;
-$('mBig3').innerHTML='<b>you:</b> '+r.you.sun+' Sun · '+r.you.moon+' Moon · '+r.you.rising+' rising<br><b>anna:</b> '+r.anna.sun+' Sun · '+r.anna.moon+' Moon · '+r.anna.rising+' rising';
-$('mGreen').innerHTML=r.green.map(f=>'<li>💖 '+f.text+' <b>(+'+f.pts+')</b></li>').join('')||'<li>…the stars found no green flags. oof.</li>';
-$('mRed').innerHTML=r.red.map(f=>'<li>💔 '+f.text+' <b>('+f.pts+')</b></li>').join('')||'<li>no red flags?? suspicious but okay.</li>';
-$('mFine').textContent='full-chart synastry · '+r.aspectCount+' cross-aspects · 10 planets + rising · tropical zodiac';
-$('overlay').style.display='flex'});
-$('closeM').onclick=()=>$('overlay').style.display='none';
-$('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')e.target.style.display='none'});
+  <main class="page">
 
-// dev hook: ?test=1 auto-fills and opens the modal
-if(new URLSearchParams(location.search).get('test')){
-$('bMonth').value=3;$('bDay').value=3;$('bYear').value=2000;$('bHour').value=10;$('bMin').value=0;pm=false;amBtn.click();
-sel={lat:40.6501,lon:-73.94958,tz:'America/New_York'};loc.value='Brooklyn, New York, US';
-setTimeout(()=>$('nextBtn').click(),400)}
-</script>
+    <div class="avatar" id="av">
+      <img id="anna" src="assets/portrait-cutout.png">
+      <img class="steam sL" src="assets/steam-left.png" alt="">
+      <img class="steam sR" src="assets/steam-right.png" alt="">
+    </div>
+
+    <form class="card">
+      <b>BIRTH DATE</b>
+      <div class="row">
+        <select id="bMonth"></select>
+        <select id="bDay"></select>
+        <select id="bYear"></select>
+      </div>
+      <b>BIRTH TIME</b>
+      <div class="row">
+        <select id="bHour"></select>
+        <span class="colon">:</span>
+        <input id="bMin" type="number" min="0" max="59" placeholder="mm">
+        <div class="ampm">
+          <button type="button" id="amBtn">AM</button>
+          <button type="button" id="pmBtn" class="on">PM</button>
+        </div>
+      </div>
+      <b>BIRTH LOCATION</b>
+      <div class="locwrap">
+        <input id="bLoc" placeholder="start typing a city" autocomplete="off">
+        <div id="locList"></div>
+      </div>
+      <button type="button" class="next" id="nextBtn">NEXT →</button>
+    </form>
+
+    <div class="moods">
+      EMOTION BETA<br>
+      <button type="button" class="on" data-img="portrait-cutout">neutral</button>
+      <button type="button" data-img="love">♥ love</button>
+      <button type="button" data-img="sad">sad</button>
+      <button type="button" data-img="scared">scared</button>
+      <button type="button" data-img="angry">😤 angry</button>
+    </div>
+
+  </main>
+
+  <!-- Compatibility result modal -->
+  <div id="overlay">
+    <div class="modal">
+      <h2>COSMIC COMPATIBILITY</h2>
+      <div class="pct" id="mPct"></div>
+      <p class="verdict" id="mVerdict"></p>
+      <div class="big3" id="mBig3"></div>
+      <h3>💖 GREEN FLAGS</h3><ul id="mGreen"></ul>
+      <h3>💔 RED FLAGS</h3><ul id="mRed"></ul>
+      <p class="fine" id="mFine"></p>
+      <button class="closeM" id="closeM">close</button>
+    </div>
+  </div>
+
+  <script src="assets/astronomy.browser.min.js"></script>
+  <script src="assets/synastry.js"></script>
+  <script src="js/survey.js"></script>
+
+</body>
+</html>

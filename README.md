@@ -27,6 +27,12 @@ survey.html           The survey: level-map progress rail, Anna portrait, DSi-st
                       autocomplete, Emotion Beta swapper, and the NEXT compatibility
                       modal (testing flow)
 stars.mp4             Looping blue star-field video, used as the full-bleed background
+css/                  base.css (shared palette + star background), landing.css,
+                      survey.css
+js/survey.js          All survey wiring: pickers, city autocomplete, emotion
+                      swapper, NEXT -> compatibility modal, ?test=1 dev hook
+SYNASTRY-NOTES.md     Every scoring node documented: weights, aspects, orbs, the
+                      air bonus / water penalty, Moon-Venus-Mars chemistry, tiers
 assets/
   party-photo.jpg     Party photo used on the landing page collage
   portrait.png        Anna's original portrait (with background)

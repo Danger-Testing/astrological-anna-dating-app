@@ -86,16 +86,34 @@
         });
       });
     });
-    // element chemistry across the personal planets
-    var bonus = 0;
-    ['Sun', 'Moon', 'Venus', 'Mars'].forEach(function (k) {
-      var eu = element(cu.points[k]), ea = element(ca.points[k]);
-      if (eu === ea) bonus += 2;
-      else if ((eu === 'fire' && ea === 'air') || (eu === 'air' && ea === 'fire') || (eu === 'earth' && ea === 'water') || (eu === 'water' && ea === 'earth')) bonus += 1.5;
-      else bonus -= 0.5;
+    var aspectCount = found.length;
+    // chart-level modifiers (see SYNASTRY-NOTES.md): Anna is an air-sign
+    // loyalist — air placements score up, heavy water scores down, and
+    // Moon/Venus/Mars sign chemistry is weighted on top of the aspects.
+    var mods = [];
+    var airN = 0, waterN = 0, airW = 0, waterW = 0;
+    all.forEach(function (p) { // weighted: a water Sun drags far more than Pluto in a water sign
+      var e = Math.floor(norm(cu.points[p.key]) / 30) % 4;
+      if (e === 2) { airN++; airW += p.w; }
+      if (e === 3) { waterN++; waterW += p.w; }
     });
-    var pct = Math.round(50 + score / 3 + bonus);
-    pct = Math.max(3, Math.min(98, pct));
+    if (airN) mods.push({ text: airN + ' of your 11 placements are in air signs — Anna’s native element', pts: airW * 1.4, good: true });
+    if (waterN) mods.push({ text: waterN + ' of your 11 placements are in water signs — heavy water drowns Anna’s air', pts: -waterW * 1.4, good: false });
+    function feeds(a, b) { return (a === 'fire' && b === 'air') || (a === 'air' && b === 'fire') || (a === 'earth' && b === 'water') || (a === 'water' && b === 'earth'); }
+    ['Moon', 'Venus', 'Mars'].forEach(function (k) {
+      var su = sign(cu.points[k]), sa = sign(ca.points[k]);
+      var eu = element(cu.points[k]), ea = element(ca.points[k]);
+      if (su === sa) mods.push({ text: 'Your ' + k + ' and Anna’s ' + k + ' are both in ' + su + ' — matching ' + k + ' signs', pts: 6, good: true });
+      else if (eu === ea) mods.push({ text: 'Your ' + k + ' (' + su + ') shares the ' + eu + ' element with Anna’s ' + k + ' (' + sa + ')', pts: 4, good: true });
+      else if (feeds(eu, ea)) mods.push({ text: 'Your ' + k + ' (' + su + ', ' + eu + ') feeds Anna’s ' + k + ' (' + sa + ', ' + ea + ')', pts: 3, good: true });
+      else mods.push({ text: 'Your ' + k + ' (' + su + ', ' + eu + ') clashes with Anna’s ' + k + ' (' + sa + ', ' + ea + ')', pts: -4, good: false });
+    });
+    var modSum = mods.reduce(function (s, m) { return s + m.pts; }, 0);
+    var raw = 50 + score / 2.2 + modSum;
+    var pct = Math.round(50 + (raw - 50) * 1.15); // stretch for more spread
+    pct = Math.max(2, Math.min(99, pct));
+    mods.forEach(function (m) { m.pts = Math.round(m.pts * 10) / 10; });
+    found = found.concat(mods);
     found.sort(function (a, b) { return Math.abs(b.pts) - Math.abs(a.pts); });
     var verdict = pct >= 80 ? 'Anna might actually want to date you.'
       : pct >= 60 ? 'The stars are… intrigued. There is something here.'
@@ -108,7 +126,7 @@
       green: found.filter(function (f) { return f.good; }).slice(0, 5),
       red: found.filter(function (f) { return !f.good; }).slice(0, 5),
       you: big3(cu), anna: big3(ca),
-      aspectCount: found.length
+      aspectCount: aspectCount
     };
   }
   window.Synastry = { compute: synastry, ANNA: ANNA };

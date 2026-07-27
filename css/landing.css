@@ -1,0 +1,107 @@
+/* Landing page: headline, scissored party photo, candy CTA. */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 100px; /* room for the fixed footer CTA */
+}
+
+h1 {
+  text-align: center;
+  margin: 0 12px 18px;
+  font-size: min(6vw, 44px);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    0 2px 0 var(--pink-dark),
+    0 4px 10px rgba(0, 0, 0, .35),
+    -2px 0 0 var(--pink),
+    2px 0 0 var(--pink);
+}
+
+/* Polaroid-style frame; width also capped so the photo + footer fit one viewport */
+.photo {
+  position: relative;
+  width: min(78vw, 1100px, calc((100vh - 300px) * 1.3333));
+  margin: 0 auto;
+  border: 14px solid #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  transform: rotate(-2deg);
+  background: #fff;
+}
+
+.photo img {
+  width: 100%;
+  display: block;
+}
+
+/* White clip-path "scissor cut" where the guy used to be */
+.cut {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  clip-path: polygon(26% 16%, 33% 15%, 39% 19%, 41% 27%, 39% 35%, 36% 42%, 40% 47%, 43% 56%, 41% 66%, 43% 78%, 41% 90%, 42% 100%, 0% 100%, 0% 76%, 1% 58%, 0% 49%, 8% 47%, 13% 44%, 11% 38%, 16% 34%, 20% 28%, 22% 21%);
+}
+
+.note {
+  position: absolute;
+  left: 3%;
+  top: 4%;
+  font-size: min(3vw, 26px);
+  font-weight: bold;
+  color: var(--pink);
+  transform: rotate(-7deg);
+  text-shadow: 0 1px 0 #fff, 0 0 8px #fff;
+}
+
+.arrow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px;
+  text-align: center;
+}
+
+/* Glossy candy CTA button */
+.candy {
+  display: inline-block;
+  padding: 14px 46px;
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: 1px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #fbc0dc 0%, #ef7ab8 30%, var(--pink-hot) 55%, var(--pink-deep) 100%);
+  border: 3px solid #f7c3dd;
+  box-shadow:
+    0 4px 0 var(--pink-darkest),
+    0 7px 12px rgba(0, 0, 0, .3),
+    inset 0 2px 3px rgba(255, 255, 255, .7);
+  text-shadow:
+    2px 2px 0 var(--pink-dark),
+    -2px 2px 0 var(--pink-dark),
+    2px -2px 0 var(--pink-dark),
+    -2px -2px 0 var(--pink-dark),
+    0 3px 4px rgba(0, 0, 0, .35);
+}
+
+.candy:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 var(--pink-darkest),
+    0 3px 6px rgba(0, 0, 0, .3),
+    inset 0 2px 3px rgba(255, 255, 255, .7);
+}

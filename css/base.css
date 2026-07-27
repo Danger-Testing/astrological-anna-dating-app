@@ -1,0 +1,33 @@
+/* Shared across all pages: palette, reset, star-field background. */
+:root {
+  --pink: #f14e98;
+  --pink-hot: #d63a90;
+  --pink-deep: #c22a7d;
+  --pink-dark: #a81260;
+  --pink-darkest: #8d1758;
+  --pink-heading: #7c1348;
+  --pink-border: #f2a9cd;
+  --pink-card-border: #b3186b;
+  --pink-card: #ffe4f0;
+  --pink-soft: #ffd9e9;
+  --ink: #4a1030;
+  --sky: #edfaff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--sky);
+}
+
+/* Full-bleed looping star video behind everything */
+.stars {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
