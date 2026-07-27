@@ -32,6 +32,9 @@ assets/
   love.png            Expression variant for the Emotion Beta (love)
   sad.png             Expression variant (sad)
   scared.png          Expression variant (scared)
+  angry.png           Expression variant (angry: red eyes, steam from ears)
+  steam-left.png      Steam cloud layers cropped from angry.png; CSS-animated
+  steam-right.png     (puffing loop) over the ears while angry is selected
 PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 ```
 
@@ -45,8 +48,7 @@ PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 
 ## Known limitations (honest state of things)
 
-- The **Emotion Beta buttons are not wired up** — the expression images exist in `assets/` but clicking does nothing yet.
-- The **NEXT button doesn't advance** — there's no state, validation, or persistence; the ten survey stages beyond stage 1 don't exist yet.
+- The **NEXT button doesn't advance** — there's no state, validation, or persistence; the survey stages beyond stage 1 don't exist yet.
 - **Birth Location is a plain text field** — no Google Places / autocomplete (needs an API key and a privacy decision).
 - Birth Date and Birth Time are **unvalidated free-text inputs**.
 - Not deployed anywhere; local only.
