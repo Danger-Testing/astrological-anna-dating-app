@@ -37,7 +37,6 @@
   color: #fff;
   font-weight: bold;
   font-size: 22px;
-  text-shadow: 0 2px 3px rgba(0, 0, 0, .6);
 }
 
 .node.active {
@@ -57,8 +56,7 @@
   font-size: 14px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #fff;
-  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 4px rgba(0, 0, 0, .45);
+  color: var(--pink-heading);
   white-space: nowrap;
 }
 
@@ -544,7 +542,6 @@
   font-size: 70px;
   font-weight: bold;
   color: var(--pink);
-  text-shadow: 2px 2px 0 var(--pink-dark), 0 4px 8px rgba(0, 0, 0, .2);
 }
 
 .verdict {
@@ -648,13 +645,11 @@ body.s2 .avatar {
   color: #fff;
   font-size: 26px;
   letter-spacing: 3px;
-  text-shadow: 0 2px 0 var(--pink-dark), 0 4px 10px rgba(0, 0, 0, .5);
 }
 
 .shelfHead span {
   color: var(--pink-soft);
   font-size: 14px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
 }
 
 /* Each row is 6 cases standing on a chrome plank (same finish as the route rail) */
@@ -780,7 +775,6 @@ body.s2 .avatar {
   color: #fff;
   font-weight: bold;
   letter-spacing: 1px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
 }
 
 .shelfFoot .next {
@@ -854,7 +848,6 @@ body.s2 .avatar {
   font-size: min(11vh, 82px);
   font-weight: bold;
   color: #fff;
-  text-shadow: 2px 2px 0 var(--pink-dark), 0 4px 10px rgba(0, 0, 0, .4);
 }
 
 .ringLabel {
@@ -863,7 +856,6 @@ body.s2 .avatar {
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #fff;
-  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 6px rgba(0, 0, 0, .5);
 }
 
 /* ---- Tiny "more info" escape hatch for the old modal (temporary) ---- */
@@ -1107,10 +1099,9 @@ body.s3 .avatar {
   font-size: 21px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 #fff;
 }
 
-.lmDrop span { font-size: 13px; color: #8a6a7c; text-shadow: 0 1px 0 #fff; }
+.lmDrop span { font-size: 13px; color: #8a6a7c; }
 
 /* CSS-drawn candy point-and-shoot: pink body, chrome lens, flash */
 .lmCam {
@@ -1289,7 +1280,6 @@ body.s3 .avatar {
   font-weight: bold;
   font-size: 15px;
   letter-spacing: 1px;
-  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 4px rgba(0, 0, 0, .45);
 }
 
 /* Verdict stamp */
@@ -1306,13 +1296,11 @@ body.s3 .avatar {
 .lmVerdict.show { display: block; }
 
 .lmVerdict.yes {
-  color: #baffc9;
-  text-shadow: 0 2px 0 #1c7a35, 0 4px 12px rgba(0, 0, 0, .5);
+  color: #fff;
 }
 
 .lmVerdict.no {
-  color: #ffb3c2;
-  text-shadow: 0 2px 0 #8d1030, 0 4px 12px rgba(0, 0, 0, .5);
+  color: #fff;
 }
 
 .lmVerdict small {
@@ -1321,7 +1309,6 @@ body.s3 .avatar {
   letter-spacing: 1px;
   margin-top: 4px;
   color: #fff;
-  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 4px rgba(0, 0, 0, .45);
 }
 
 @keyframes stampIn {
@@ -1384,7 +1371,6 @@ body.s3 .avatar {
   font-size: 130px;
   font-weight: bold;
   color: #fff;
-  text-shadow: 0 5px 0 var(--pink-dark), 0 10px 28px rgba(0, 0, 0, .6);
   pointer-events: none;
 }
 
@@ -1447,7 +1433,7 @@ body.s4 .avatar { display: none; }
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 7vw;
+  gap: 2vw;
 }
 
 /* department-store cardboard standee: photo head + flat silhouette + easel base */
@@ -1537,7 +1523,6 @@ body.s4 .avatar { display: none; }
   font-style: normal;
   letter-spacing: 1px;
   color: #fff;
-  text-shadow: 0 1px 0 var(--pink-dark), 0 2px 4px rgba(0, 0, 0, .45);
 }
 
 /* big live readout on the right */
@@ -1549,11 +1534,6 @@ body.s4 .avatar { display: none; }
   font-weight: bold;
   font-family: var(--font-round);
   color: #fff;
-  text-shadow:
-    0 3px 0 var(--pink-dark),
-    -3px 0 0 var(--pink),
-    3px 0 0 var(--pink),
-    0 6px 14px rgba(0, 0, 0, .35);
   pointer-events: none;
 }
 
