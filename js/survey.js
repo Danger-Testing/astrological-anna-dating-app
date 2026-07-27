@@ -14,10 +14,101 @@
       btn.classList.add('on');
     });
   });
-  // #love, #angry, etc. in the URL preselects that mood
+  /* ---- Animation Beta: layered FX behind Anna (arrows, boom, fire, waterfall, sparkles) ---- */
+  var fx = $('fx');
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  // Spawns n <span>s into the FX layer; setup(el, i) styles each one.
+  // Negative animation delays start every loop mid-flight, so effects fill
+  // the screen instantly instead of trickling in.
+  function spawn(n, setup) {
+    for (var i = 0; i < n; i++) {
+      var s = document.createElement('span');
+      setup(s, i);
+      fx.appendChild(s);
+    }
+  }
+  var EFFECTS = {
+    none: function () {},
+    arrows: function () {
+      spawn(14, function (s) {
+        s.className = 'fx-arrow';
+        s.textContent = '⬆';
+        s.style.left = rnd(0, 96) + '%';
+        s.style.fontSize = rnd(26, 64) + 'px';
+        s.style.animationDuration = rnd(2.4, 5.5) + 's';
+        s.style.animationDelay = -rnd(0, 5.5) + 's';
+      });
+    },
+    boom: function () {
+      spawn(12, function (s) {
+        s.className = 'fx-boom';
+        s.textContent = '💥';
+        s.style.left = rnd(2, 88) + '%';
+        s.style.top = rnd(4, 72) + '%';
+        s.style.fontSize = rnd(40, 110) + 'px';
+        s.style.animationDuration = rnd(1.8, 3.6) + 's';
+        s.style.animationDelay = -rnd(0, 3.6) + 's';
+      });
+    },
+    fire: function () {
+      spawn(16, function (s, i) {
+        s.className = 'fx-flame';
+        s.textContent = '🔥';
+        s.style.left = (i * 6.5 - 2) + '%';
+        s.style.fontSize = rnd(44, 96) + 'px';
+        s.style.animationDuration = rnd(0.35, 0.7) + 's';
+        s.style.animationDelay = -rnd(0, 0.7) + 's';
+      });
+      spawn(10, function (s) {
+        s.className = 'fx-ember';
+        s.style.left = rnd(0, 98) + '%';
+        s.style.animationDuration = rnd(1.6, 3.4) + 's';
+        s.style.animationDelay = -rnd(0, 3.4) + 's';
+      });
+    },
+    waterfall: function () {
+      spawn(12, function (s) {
+        s.className = 'fx-water';
+        s.style.left = rnd(0, 94) + '%';
+        s.style.width = rnd(22, 70) + 'px';
+        s.style.animationDuration = rnd(1.1, 2.2) + 's';
+        s.style.animationDelay = -rnd(0, 2.2) + 's';
+      });
+      spawn(8, function (s) {
+        s.className = 'fx-splash';
+        s.textContent = '💦';
+        s.style.left = rnd(2, 90) + '%';
+        s.style.fontSize = rnd(28, 60) + 'px';
+        s.style.animationDuration = rnd(1.4, 2.6) + 's';
+        s.style.animationDelay = -rnd(0, 2.6) + 's';
+      });
+    },
+    sparkles: function () {
+      spawn(18, function (s) {
+        s.className = 'fx-spark';
+        s.textContent = '✨';
+        s.style.left = rnd(0, 96) + '%';
+        s.style.top = rnd(2, 88) + '%';
+        s.style.fontSize = rnd(18, 52) + 'px';
+        s.style.animationDuration = rnd(1.2, 2.8) + 's';
+        s.style.animationDelay = -rnd(0, 2.8) + 's';
+      });
+    }
+  };
+  var animButtons = document.querySelectorAll('.anims button');
+  animButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      fx.innerHTML = '';
+      (EFFECTS[btn.dataset.fx] || EFFECTS.none)();
+      animButtons.forEach(function (b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+    });
+  });
+
+  // #love, #angry, #fire, etc. in the URL preselects that mood or effect
   var hash = location.hash.slice(1);
   if (hash) {
-    var hashBtn = document.querySelector('.moods button[data-img="' + hash + '"]');
+    var hashBtn = document.querySelector('.moods button[data-img="' + hash + '"], .anims button[data-fx="' + hash + '"]');
     if (hashBtn) hashBtn.click();
   }
 
@@ -76,8 +167,67 @@
     setTimeout(function () { locList.style.display = 'none'; }, 200);
   });
 
-  /* ---- NEXT: validate, compute synastry, show the modal ---- */
+  /* ---- Stage 2: the movie test (Blu-ray shelf) ----
+     Posters live in assets/posters/. Click = toggle seen; hover picks the
+     case up with a cursor-following 3D tilt + gloss, like handling a Blu-ray. */
+  var MOVIES = [
+    { slug: 'holy-mountain', title: 'The Holy Mountain', year: 1973 },
+    { slug: 'wild-at-heart', title: 'Wild at Heart', year: 1990 },
+    { slug: 'paris-texas', title: 'Paris, Texas', year: 1984 },
+    { slug: 'vertigo', title: 'Vertigo', year: 1958 },
+    { slug: 'three-colours-red', title: 'Three Colours: Red', year: 1994 },
+    { slug: 'woman-under-influence', title: 'A Woman Under the Influence', year: 1974 },
+    { slug: 'jeanne-dielman', title: 'Jeanne Dielman, 23, quai du Commerce, 1080 Bruxelles', year: 1975 },
+    { slug: 'stalker', title: 'Stalker', year: 1979 },
+    { slug: 'gilbert-grape', title: "What's Eating Gilbert Grape", year: 1993 },
+    { slug: 'cook-thief-wife-lover', title: 'The Cook, the Thief, His Wife & Her Lover', year: 1989 },
+    { slug: 'persona', title: 'Persona', year: 1966 },
+    { slug: 'brutalist', title: 'The Brutalist', year: 2024 }
+  ];
+  var seen = {};
+
+  MOVIES.forEach(function (m, i) {
+    var c = document.createElement('button');
+    c.type = 'button';
+    c.className = 'case';
+    c.title = m.title + ' (' + m.year + ')';
+    c.style.animationDelay = (i * 60) + 'ms';
+    c.innerHTML = '<img src="assets/posters/' + m.slug + '.jpg" alt="' + m.title + ' (' + m.year + ') poster" draggable="false">' +
+      '<i class="spine"></i><i class="gloss"></i><b class="seenTag">SEEN ✓</b>';
+    $(i < 6 ? 'shelfRow1' : 'shelfRow2').appendChild(c);
+
+    // cursor-following tilt: the case leans toward wherever you're gripping it
+    c.addEventListener('mousemove', function (e) {
+      var r = c.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.style.transform = 'translateY(-16px) scale(1.09) rotateY(' + ((x - .5) * 24).toFixed(1) + 'deg) rotateX(' + ((.5 - y) * 18).toFixed(1) + 'deg)';
+      c.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+      c.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+    });
+    c.addEventListener('mouseleave', function () { c.style.transform = ''; });
+    c.addEventListener('click', function () {
+      seen[m.slug] = !seen[m.slug];
+      c.classList.toggle('picked', seen[m.slug]);
+      var n = Object.keys(seen).filter(function (k) { return seen[k]; }).length;
+      $('seenCount').textContent = n + ' / ' + MOVIES.length + ' seen';
+    });
+  });
+
+  function goStage(n) {
+    document.body.classList.toggle('s2', n === 2);
+    document.querySelectorAll('.map .node').forEach(function (node, i) {
+      node.classList.toggle('active', i === n - 1);
+      node.classList.toggle('done', i < n - 1);
+    });
+  }
+  // completed node 1 is clickable to go back and fix birth details
+  document.querySelector('.node.n1').addEventListener('click', function () {
+    if (document.body.classList.contains('s2')) goStage(1);
+  });
+
+  /* ---- NEXT: validate, compute synastry, advance to the movie test ---- */
   document.querySelector('.card').addEventListener('submit', function (e) { e.preventDefault(); });
+  var synastryResult = null;
 
   $('nextBtn').addEventListener('click', function () {
     var mo = +$('bMonth').value, d = +$('bDay').value, y = +$('bYear').value;
@@ -93,8 +243,14 @@
       return;
     }
     var h24 = (h12 % 12) + (pm ? 12 : 0);
-    var r = Synastry.compute({ y: y, mo: mo, d: d, h: h24, mi: mi, lat: selected.lat, lon: selected.lon, tz: selected.tz });
-    showResult(r);
+    synastryResult = Synastry.compute({ y: y, mo: mo, d: d, h: h24, mi: mi, lat: selected.lat, lon: selected.lon, tz: selected.tz });
+    goStage(2);
+  });
+
+  // stage 2 NEXT: stages 3-5 don't exist yet, so show the compatibility
+  // modal here for now (movie taste doesn't move the score yet)
+  $('nextBtn2').addEventListener('click', function () {
+    if (synastryResult) showResult(synastryResult);
   });
 
   function showResult(r) {

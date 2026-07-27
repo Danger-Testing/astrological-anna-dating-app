@@ -252,18 +252,28 @@
   box-shadow: 0 2px 0 var(--pink-dark);
 }
 
-/* ---- Emotion Beta panel ---- */
-.moods {
+/* ---- Beta panels (Emotion + Animation, stacked bottom-left) ---- */
+.betas {
   position: absolute;
   left: 5%;
   bottom: 5%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 350px;
+}
+
+.moods,
+.anims {
   padding: 12px;
   background: var(--pink-soft);
   border: 3px solid var(--pink);
   border-radius: 15px;
 }
 
-.moods button {
+.moods button,
+.anims button {
   margin: 3px;
   border-radius: 7px;
   border: 2px solid var(--pink);
@@ -272,9 +282,109 @@
   cursor: pointer;
 }
 
-.moods button.on {
+.moods button.on,
+.anims button.on {
   background: var(--pink);
   color: #fff;
+}
+
+/* ---- Animation Beta FX layer (behind Anna, above the stars) ---- */
+#fx {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#fx span {
+  position: absolute;
+  will-change: transform, opacity;
+}
+
+/* arrows: pink glowing arrows rising from below the fold */
+.fx-arrow {
+  top: 100%;
+  color: var(--pink);
+  font-weight: bold;
+  text-shadow: 0 0 12px rgba(241, 78, 152, .85), 2px 2px 0 var(--pink-dark);
+  animation: fxRise linear infinite;
+}
+
+@keyframes fxRise {
+  from { transform: translateY(0); opacity: 1; }
+  80%  { opacity: 1; }
+  to   { transform: translateY(-115vh); opacity: 0; }
+}
+
+/* boom: explosions popping in and out at random spots */
+.fx-boom {
+  opacity: 0;
+  animation: fxBoom ease-out infinite;
+}
+
+@keyframes fxBoom {
+  0%, 58%   { transform: scale(0); opacity: 0; }
+  66%       { transform: scale(1.35); opacity: 1; }
+  78%       { transform: scale(1); opacity: 1; }
+  92%, 100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* fire: flame row licking up from the bottom edge + rising embers */
+.fx-flame {
+  bottom: -12px;
+  transform-origin: 50% 100%;
+  animation: fxFlick ease-in-out infinite alternate;
+}
+
+@keyframes fxFlick {
+  from { transform: scaleY(1); }
+  to   { transform: scaleY(1.3) rotate(3deg); filter: brightness(1.25); }
+}
+
+.fx-ember {
+  top: 100%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffb347;
+  box-shadow: 0 0 9px 3px rgba(255, 140, 40, .8);
+  animation: fxRise linear infinite;
+}
+
+/* waterfall: translucent columns pouring down + splashes at the base */
+.fx-water {
+  top: -40%;
+  height: 40%;
+  border-radius: 12px;
+  background: linear-gradient(rgba(170, 225, 255, 0), rgba(170, 225, 255, .55) 45%, rgba(255, 255, 255, .8));
+  animation: fxFall linear infinite;
+}
+
+@keyframes fxFall {
+  to { transform: translateY(350%); }
+}
+
+.fx-splash {
+  bottom: 0;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  animation: fxSplash ease-out infinite;
+}
+
+@keyframes fxSplash {
+  0%, 55% { transform: scale(.3); opacity: 0; }
+  68%     { transform: scale(1.2); opacity: 1; }
+  100%    { transform: scale(1.6) translateY(-12px); opacity: 0; }
+}
+
+/* sparkles: twinkling scattered across the sky */
+.fx-spark {
+  animation: fxTwinkle ease-in-out infinite;
+}
+
+@keyframes fxTwinkle {
+  0%, 100% { transform: scale(.4) rotate(0deg); opacity: .15; }
+  50%      { transform: scale(1.15) rotate(25deg); opacity: 1; }
 }
 
 /* ---- Compatibility result modal ---- */
@@ -375,4 +485,183 @@
 .closeM:active {
   transform: translateY(3px);
   box-shadow: 0 2px 0 var(--pink-dark);
+}
+
+/* ---- Stage 2: the movie test (Blu-ray shelf) ---- */
+/* Stage visibility: body.s2 swaps the birth card for the shelf and shrinks
+   Anna into the corner (transform so it animates; feet stay on the floor). */
+#stage2 { display: none; }
+
+body.s2 #stage2 {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  inset: 0 3% 2%;
+  z-index: 3;
+}
+
+body.s2 .card { display: none; }
+
+.avatar {
+  transform-origin: bottom center;
+  transition: transform .6s cubic-bezier(.5, 1.4, .4, 1);
+}
+
+body.s2 .avatar {
+  transform: translateX(-50%) translateX(41vw) scale(.42);
+  z-index: 0;
+}
+
+.shelfHead {
+  text-align: center;
+  margin: 6px 0 10px;
+}
+
+.shelfHead b {
+  display: block;
+  color: #fff;
+  font-size: 26px;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 0 var(--pink-dark), 0 4px 10px rgba(0, 0, 0, .5);
+}
+
+.shelfHead span {
+  color: var(--pink-soft);
+  font-size: 14px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+/* Each row is 6 cases standing on a chrome plank (same finish as the route rail) */
+.shelfRow {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0 1.4vw;
+  justify-items: center;
+  align-items: end;
+  perspective: 1100px;
+  padding: 14px 3% 0;
+  border-bottom: 14px solid transparent;
+  border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 14px 0;
+}
+
+/* The case: a Blu-ray in your hand. preserve-3d so the spine reads as a real
+   side face when the case tilts. Transform is driven inline by mousemove. */
+.case {
+  position: relative;
+  width: min(100%, 17vh);
+  aspect-ratio: 2 / 3;
+  margin-bottom: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform .18s ease-out;
+  will-change: transform;
+  animation: casePopIn .45s cubic-bezier(.4, 1.6, .5, 1) backwards;
+}
+
+@keyframes casePopIn {
+  from { opacity: 0; transform: translateY(34px) rotateX(18deg); }
+}
+
+.case:hover { z-index: 10; }
+
+/* shadow lives on the img, NOT as a filter on .case — filter would flatten
+   the preserve-3d and kill the spine */
+.case img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 3px 6px 6px 3px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  transform: translateZ(6px);
+  box-shadow: 0 10px 14px rgba(0, 0, 0, .55);
+  transition: box-shadow .18s ease-out;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.case:hover img { box-shadow: 0 26px 26px rgba(0, 0, 0, .6); }
+
+/* Blu-ray spine: the blue left edge, folded 90° backwards */
+.case .spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  background: linear-gradient(180deg, #1f7ae0, #0a4faf 30%, #063a86);
+  border-radius: 2px 0 0 2px;
+  transform: rotateY(-90deg) translateZ(6px);
+  transform-origin: left center;
+}
+
+/* Glossy plastic wrap: highlight follows the cursor (set as --mx/--my by js) */
+.case .gloss {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px 6px 6px 3px;
+  transform: translateZ(7px);
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, .34), rgba(255, 255, 255, .08) 34%, transparent 60%);
+  opacity: 0;
+  transition: opacity .18s;
+  pointer-events: none;
+}
+
+.case:hover .gloss { opacity: 1; }
+
+/* Picked = seen: pink glow + corner tag, stays proud of the shelf */
+.case .seenTag {
+  position: absolute;
+  top: 7px;
+  right: -6px;
+  padding: 4px 9px;
+  background: var(--pink);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 1px;
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--pink-dark), 0 3px 6px rgba(0, 0, 0, .4);
+  transform: translateZ(9px) rotate(6deg) scale(0);
+  transition: transform .22s cubic-bezier(.4, 1.8, .5, 1);
+}
+
+.case.picked .seenTag { transform: translateZ(9px) rotate(6deg) scale(1); }
+
+.case.picked img {
+  outline: 3px solid var(--pink);
+  box-shadow: 0 0 18px 4px rgba(241, 78, 152, .8);
+}
+
+.case.picked:not(:hover) { transform: translateY(-8px); }
+
+.shelfFoot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding-top: 14px;
+}
+
+.shelfFoot .seen {
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+.shelfFoot .next {
+  width: auto;
+  margin: 0;
+  padding: 12px 36px;
+}
+
+/* Progress rail: a finished stage turns chrome with a pink check */
+.node.done {
+  background: radial-gradient(circle at 35% 30%, #ffffff, #d9dbe2 45%, #9fa3af);
+  color: var(--pink-deep);
+  cursor: pointer;
 }

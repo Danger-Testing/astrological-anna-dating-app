@@ -10,9 +10,13 @@ The math runs entirely in the browser using a real ephemeris
 Born **October 19, 1996 at 9:36 PM** in **Fredericton, New Brunswick, Canada**
 (45.95°N, 66.67°W, America/Moncton — ADT at that date).
 
-Computed placements: **Libra Sun · Capricorn Moon · Gemini rising** (plus the other
-seven planets, all used). Note the Libra Sun and Gemini rising: Anna is air-sign
+Computed placements: **Libra Sun · Aquarius Moon · Gemini rising** (plus the other
+seven planets, all used). Sun, Moon, AND rising all in air signs: Anna is air-sign
 dominant, which is why the modifiers below lean the way they do.
+
+(Her Moon sits at 0.4° Aquarius — right on the Capricorn cusp. Positions are
+geocentric, the astrological standard; a topocentric calculation would parallax-shift
+the Moon back into Capricorn, which is wrong and also slander.)
 
 ## Chart points and weights
 

@@ -22,13 +22,15 @@
     <i class="node n4">4</i>
     <i class="node n5">5</i>
     <em class="lbl n1">astrology</em>
-    <em class="lbl n2">book test</em>
+    <em class="lbl n2">movie test</em>
     <em class="lbl n3">swaggy genius</em>
     <em class="lbl n4">height</em>
     <em class="lbl n5">final</em>
   </nav>
 
   <main class="page">
+
+    <div id="fx" aria-hidden="true"></div>
 
     <div class="avatar" id="av">
       <img id="anna" src="assets/portrait-cutout.png">
@@ -61,13 +63,38 @@
       <button type="button" class="next" id="nextBtn">NEXT →</button>
     </form>
 
-    <div class="moods">
-      EMOTION BETA<br>
-      <button type="button" class="on" data-img="portrait-cutout">neutral</button>
-      <button type="button" data-img="love">♥ love</button>
-      <button type="button" data-img="sad">sad</button>
-      <button type="button" data-img="scared">scared</button>
-      <button type="button" data-img="angry">😤 angry</button>
+    <!-- Stage 2: the movie test (Blu-ray shelf; cases are built by js/survey.js) -->
+    <section id="stage2">
+      <header class="shelfHead">
+        <b>THE MOVIE TEST</b>
+        <span>click every one you've <i>actually</i> seen — Anna can tell when you lie</span>
+      </header>
+      <div class="shelfRow" id="shelfRow1"></div>
+      <div class="shelfRow" id="shelfRow2"></div>
+      <footer class="shelfFoot">
+        <span class="seen" id="seenCount">0 / 12 seen</span>
+        <button type="button" class="next" id="nextBtn2">NEXT →</button>
+      </footer>
+    </section>
+
+    <div class="betas">
+      <div class="anims">
+        ANIMATION BETA<br>
+        <button type="button" class="on" data-fx="none">none</button>
+        <button type="button" data-fx="arrows">⬆ arrows</button>
+        <button type="button" data-fx="boom">💥 boom</button>
+        <button type="button" data-fx="fire">🔥 fire</button>
+        <button type="button" data-fx="waterfall">🌊 waterfall</button>
+        <button type="button" data-fx="sparkles">✨ sparkles</button>
+      </div>
+      <div class="moods">
+        EMOTION BETA<br>
+        <button type="button" class="on" data-img="portrait-cutout">neutral</button>
+        <button type="button" data-img="love">♥ love</button>
+        <button type="button" data-img="sad">sad</button>
+        <button type="button" data-img="scared">scared</button>
+        <button type="button" data-img="angry">😤 angry</button>
+      </div>
     </div>
 
   </main>

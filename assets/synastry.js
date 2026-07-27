@@ -38,11 +38,6 @@
     return new Date(guess);
   }
   function norm(d) { d = d % 360; return d < 0 ? d + 360 : d; }
-  function eclipticLon(ra, dec) { // ra hours, dec degrees -> ecliptic-of-date longitude
-    var a = ra * 15 * Math.PI / 180, d = dec * Math.PI / 180;
-    var lam = Math.atan2(Math.sin(a) * Math.cos(OBLIQUITY) + Math.tan(d) * Math.sin(OBLIQUITY), Math.cos(a));
-    return norm(lam * 180 / Math.PI);
-  }
   function ascendant(date, lat, lon) {
     var gst = Astronomy.SiderealTime(date); // hours
     var ramc = norm(gst * 15 + lon) * Math.PI / 180;
@@ -55,11 +50,13 @@
   }
   function chart(b) {
     var date = utcFromLocal(b);
-    var obs = new Astronomy.Observer(b.lat, b.lon, 0);
     var points = {};
     PLANETS.forEach(function (p) {
-      var eq = Astronomy.Equator(Astronomy.Body[p.body], date, obs, true, true);
-      points[p.key] = eclipticLon(eq.ra, eq.dec);
+      // geocentric true-ecliptic-of-date longitude — the astrological standard.
+      // (Topocentric would shift the Moon by up to ~1° of parallax.)
+      var vec = Astronomy.GeoVector(Astronomy.Body[p.body], date, true);
+      var ect = Astronomy.RotateVector(Astronomy.Rotation_EQJ_ECT(date), vec);
+      points[p.key] = norm(Astronomy.SphereFromVector(ect).lon);
     });
     points.Ascendant = ascendant(date, b.lat, b.lon);
     return { points: points, date: date };
