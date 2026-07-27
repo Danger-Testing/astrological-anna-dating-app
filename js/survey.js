@@ -104,35 +104,15 @@
         s.style.animationDelay = -rnd(0, 1.8) + 's';
       });
     },
-    // layered shimmer: CSS-drawn 4-point starbursts (white + pink) blooming in
-    // and out, drifting stardust motes, and shooting stars streaking diagonally
-    sparkles: function () {
-      spawn(16, function (s, i) {
-        s.className = 'fx-star' + (i % 3 === 2 ? ' pink' : '');
-        var sz = rnd(16, 58);
-        s.style.width = sz + 'px';
-        s.style.height = sz + 'px';
-        s.style.left = rnd(0, 96) + '%';
-        s.style.top = rnd(2, 86) + '%';
-        s.style.animationDuration = rnd(1.4, 3.2) + 's';
-        s.style.animationDelay = -rnd(0, 3.2) + 's';
-      });
-      spawn(26, function (s) {
-        s.className = 'fx-mote';
-        var sz = rnd(2.5, 5.5);
-        s.style.width = sz + 'px';
-        s.style.height = sz + 'px';
-        s.style.left = rnd(0, 98) + '%';
-        s.style.top = rnd(2, 94) + '%';
-        s.style.animationDuration = rnd(2.2, 4.6) + 's';
-        s.style.animationDelay = -rnd(0, 4.6) + 's';
-      });
-      spawn(5, function (s) {
+    // shooting stars only: gradient tails streaking diagonally across the sky
+    shooting: function () {
+      spawn(10, function (s) {
         s.className = 'fx-shoot';
-        s.style.left = rnd(35, 92) + '%';
-        s.style.top = rnd(4, 55) + '%';
-        s.style.width = rnd(90, 180) + 'px';
-        s.style.animationDuration = rnd(2.6, 5) + 's';
+        s.style.left = rnd(25, 96) + '%';
+        s.style.top = rnd(2, 68) + '%';
+        s.style.width = rnd(90, 200) + 'px';
+        s.style.height = rnd(2, 4).toFixed(1) + 'px';
+        s.style.animationDuration = rnd(2.2, 5) + 's';
         s.style.animationDelay = -rnd(0, 5) + 's';
       });
     }
@@ -389,6 +369,8 @@
   function goStage(n) {
     document.body.classList.toggle('s2', n === 2);
     document.body.classList.toggle('s3', n === 3);
+    // photobooth camera only runs while stage 3 is showing its upload step
+    if (n === 3) startBooth(); else stopBooth();
     document.querySelectorAll('.map .node').forEach(function (node, i) {
       node.classList.toggle('active', i === n - 1);
       node.classList.toggle('done', i < n - 1);
@@ -469,6 +451,40 @@
     }
   });
 
+  /* ---- 🎲 randomize: fill the whole birth card with a random person ---- */
+  var RND_CITIES = [
+    { name: 'Brooklyn, New York, US', lat: 40.6501, lon: -73.94958, tz: 'America/New_York' },
+    { name: 'Los Angeles, California, US', lat: 34.05223, lon: -118.24368, tz: 'America/Los_Angeles' },
+    { name: 'Toronto, Ontario, CA', lat: 43.70011, lon: -79.4163, tz: 'America/Toronto' },
+    { name: 'London, England, GB', lat: 51.50853, lon: -0.12574, tz: 'Europe/London' },
+    { name: 'Paris, Île-de-France, FR', lat: 48.85341, lon: 2.3488, tz: 'Europe/Paris' },
+    { name: 'Tokyo, JP', lat: 35.6895, lon: 139.69171, tz: 'Asia/Tokyo' },
+    { name: 'Lagos, NG', lat: 6.45407, lon: 3.39467, tz: 'Africa/Lagos' },
+    { name: 'São Paulo, BR', lat: -23.5475, lon: -46.63611, tz: 'America/Sao_Paulo' },
+    { name: 'Mexico City, MX', lat: 19.42847, lon: -99.12766, tz: 'America/Mexico_City' },
+    { name: 'Seoul, KR', lat: 37.566, lon: 126.9784, tz: 'Asia/Seoul' },
+    { name: 'Sydney, New South Wales, AU', lat: -33.86785, lon: 151.20732, tz: 'Australia/Sydney' },
+    { name: 'Fredericton, New Brunswick, CA', lat: 45.94541, lon: -66.66558, tz: 'America/Moncton' },
+    { name: 'Reykjavík, IS', lat: 64.13548, lon: -21.89541, tz: 'Atlantic/Reykjavik' },
+    { name: 'Cairo, EG', lat: 30.06263, lon: 31.24967, tz: 'Africa/Cairo' }
+  ];
+  var DAYS_IN = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+  $('rndBtn').addEventListener('click', function () {
+    function pick(a, b) { return Math.floor(rnd(a, b + 1)); }
+    var mo = pick(1, 12);
+    $('bMonth').value = mo;
+    $('bDay').value = pick(1, DAYS_IN[mo - 1]);
+    $('bYear').value = pick(1965, 2004); // adults only; the age gate bites otherwise
+    $('bHour').value = pick(1, 12);
+    $('bMin').value = pick(0, 59);
+    (Math.random() < 0.5 ? amBtn : pmBtn).click();
+    var c = RND_CITIES[pick(0, RND_CITIES.length - 1)];
+    selected = { lat: c.lat, lon: c.lon, tz: c.tz };
+    locInput.value = c.name;
+    locList.style.display = 'none';
+  });
+
   // stage 2 NEXT: seen ≤3 of the shelf? then Anna demands ≥2 favorites first.
   // Movie taste folds into the score, then the reveal hands off to stage 3.
   var tasteResult = null;
@@ -484,11 +500,69 @@
   });
 
   /* ---- Stage 3: looks match ----
-     Upload -> CAPTURE -> the two polaroids pair up while the loading bar
-     runs -> LOOKS MATCHED or not. Looks.analyze (assets/looks.js) is
-     instant canvas math; the loading bar is pure theater. */
+     Photobooth: live selfie feed -> CAPTURE runs a 3-2-1 countdown + flash
+     and snaps the frame -> the two polaroids pair up while the loading bar
+     runs -> LOOKS MATCHED or not. Camera denied/unavailable? The upload
+     button is the fallback. Looks.analyze (assets/looks.js) is instant
+     canvas math; the loading bar is pure theater. */
   var lmFile = $('lmFile'), lmDrop = $('lmDrop'), lmCapture = $('lmCapture');
   var lmImg = null, looksScore = null, looksResult = null;
+  var boothStream = null, boothOn = false, boothTimer = null;
+
+  function startBooth() {
+    if (boothOn || lmImg) return; // already live, or a photo is already locked in
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 } }, audio: false })
+      .then(function (stream) {
+        boothStream = stream;
+        boothOn = true;
+        $('boothVid').srcObject = stream;
+        $('booth').classList.add('live');
+        lmCapture.disabled = false;
+      })
+      .catch(function () { /* denied or no camera: the upload button stays */ });
+  }
+  function stopBooth() {
+    if (boothStream) { boothStream.getTracks().forEach(function (t) { t.stop(); }); boothStream = null; }
+    clearInterval(boothTimer);
+    $('boothCount').classList.remove('show');
+    boothOn = false;
+    $('booth').classList.remove('live');
+  }
+
+  // 3-2-1 -> flash -> freeze the mirrored frame the user was posing in
+  function snapBooth() {
+    var count = $('boothCount'), n = 3;
+    count.textContent = n;
+    count.classList.add('show');
+    lmCapture.disabled = true;
+    boothTimer = setInterval(function () {
+      n--;
+      if (n > 0) { count.textContent = n; return; }
+      clearInterval(boothTimer);
+      count.classList.remove('show');
+      var flash = $('boothFlash');
+      flash.classList.add('go');
+      setTimeout(function () { flash.classList.remove('go'); }, 500);
+      var vid = $('boothVid');
+      var c = document.createElement('canvas');
+      c.width = vid.videoWidth || 1280;
+      c.height = vid.videoHeight || 720;
+      var ctx = c.getContext('2d');
+      ctx.translate(c.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(vid, 0, 0);
+      var url = c.toDataURL('image/jpeg', 0.92);
+      var img = new Image();
+      img.onload = function () {
+        lmImg = img;
+        $('lmYouImg').src = url;
+        stopBooth();
+        runLooks();
+      };
+      img.src = url;
+    }, 800);
+  }
 
   lmDrop.addEventListener('click', function () { lmFile.click(); });
   lmFile.addEventListener('change', function () {
@@ -517,7 +591,12 @@
   ];
 
   lmCapture.addEventListener('click', function () {
+    if (boothOn) { snapBooth(); return; }
     if (!lmImg) return;
+    runLooks();
+  });
+
+  function runLooks() {
     looksScore = Looks.analyze(lmImg);
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
@@ -534,7 +613,7 @@
         setTimeout(showLooksVerdict, 350);
       }
     }, 620);
-  });
+  }
 
   function showLooksVerdict() {
     $('lmLoad').style.display = 'none';

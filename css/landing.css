@@ -84,7 +84,10 @@ footer {
   text-decoration: none;
   letter-spacing: 1px;
   border-radius: 26px;
-  background: linear-gradient(180deg, #fbc0dc 0%, #ef7ab8 30%, var(--pink-hot) 55%, var(--pink-deep) 100%);
+  /* literal hexes (not vars): a stale cached base.css without --pink-hot
+     would invalidate the whole gradient and leave the button hollow */
+  background-color: #d63a90;
+  background-image: linear-gradient(180deg, #fbc0dc 0%, #ef7ab8 30%, #d63a90 55%, #c22a7d 100%);
   border: 3px solid #f7c3dd;
   box-shadow:
     0 4px 0 var(--pink-darkest),

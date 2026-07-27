@@ -61,6 +61,7 @@
         <div id="locList"></div>
       </div>
       <button type="button" class="next" id="nextBtn">NEXT →</button>
+      <button type="button" class="rndBtn" id="rndBtn">🎲 randomize</button>
     </form>
 
     <!-- Stage 2: the movie test (Blu-ray shelf; cases are built by js/survey.js) -->
@@ -95,11 +96,21 @@
 
       <div class="lmUpload" id="lmUpload">
         <input type="file" id="lmFile" accept="image/*" hidden>
-        <button type="button" class="lmDrop" id="lmDrop">
-          <i>📸</i>
-          <b>upload a photo of yourself</b>
-          <span>face clearly visible · no group pics · Anna will know</span>
-        </button>
+        <div class="booth" id="booth">
+          <video id="boothVid" autoplay playsinline muted></video>
+          <div class="boothCount" id="boothCount" aria-hidden="true"></div>
+          <div class="boothFlash" id="boothFlash" aria-hidden="true"></div>
+          <!-- fallback when the camera is denied/unavailable -->
+          <button type="button" class="lmDrop" id="lmDrop">
+            <i class="lmCam" aria-hidden="true">
+              <u class="camTop"></u>
+              <u class="camLens"></u>
+              <u class="camFlash"></u>
+            </i>
+            <b>upload a photo of yourself</b>
+            <span>face clearly visible · no group pics · Anna will know</span>
+          </button>
+        </div>
         <button type="button" class="next lmCapture" id="lmCapture" disabled>CAPTURE →</button>
       </div>
 
@@ -130,7 +141,7 @@
           <button type="button" data-fx="boom">💥 boom</button>
           <button type="button" data-fx="fire">🔥 fire</button>
           <button type="button" data-fx="waterfall">🌊 waterfall</button>
-          <button type="button" data-fx="sparkles">✨ sparkles</button>
+          <button type="button" data-fx="shooting">🌠 shooting stars</button>
         </div>
       </div>
       <div class="moods betaPanel" id="moodsPanel">
@@ -141,6 +152,10 @@
           <button type="button" data-img="sad">sad</button>
           <button type="button" data-img="scared">scared</button>
           <button type="button" data-img="angry">😤 angry</button>
+          <button type="button" data-img="smug">😏 smug</button>
+          <button type="button" data-img="laughing">😂 laughing</button>
+          <button type="button" data-img="disgusted">🤢 disgusted</button>
+          <button type="button" data-img="starstruck">🤩 starstruck</button>
         </div>
       </div>
     </div>

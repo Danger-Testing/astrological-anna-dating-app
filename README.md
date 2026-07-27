@@ -41,6 +41,10 @@ assets/
   sad.png             Expression variant (sad)
   scared.png          Expression variant (scared)
   angry.png           Expression variant (angry: red eyes, steam from ears)
+  smug.png            Expression variant (smug: raised brow, judging smirk)
+  laughing.png        Expression variant (laughing: eyes shut, full cackle)
+  disgusted.png       Expression variant (disgusted: recoiling "ew" face)
+  starstruck.png      Expression variant (starstruck: wide sparkly-eyed awe)
   steam-left.png      Steam cloud layers cropped from angry.png; CSS-animated
   steam-right.png     (puffing loop) over the ears while angry is selected
   astronomy.browser.min.js  Vendored astronomy-engine (MIT) — real ephemeris math

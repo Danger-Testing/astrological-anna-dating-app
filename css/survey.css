@@ -489,41 +489,8 @@
 }
 
 /* sparkles: twinkling scattered across the sky */
-/* sparkles: layered night-sky shimmer, all CSS-drawn.
-   fx-star = 4-point starburst (clip-path) blooming with a half-turn;
-   fx-mote = drifting stardust fleck; fx-shoot = shooting star, a gradient
-   tail that streaks along its rotated axis (rotate then translate). */
-.fx-star {
-  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, .9) 30%, rgba(255, 214, 240, 0) 72%);
-  clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, .9)) drop-shadow(0 0 14px rgba(241, 78, 152, .55));
-  animation: fxStar ease-in-out infinite;
-}
-
-.fx-star.pink {
-  background: radial-gradient(circle, #ffd9e9 0%, rgba(247, 114, 176, .95) 32%, rgba(241, 78, 152, 0) 72%);
-  filter: drop-shadow(0 0 6px rgba(247, 114, 176, .95)) drop-shadow(0 0 14px rgba(241, 78, 152, .7));
-}
-
-@keyframes fxStar {
-  0%, 100% { transform: scale(.2) rotate(0deg); opacity: .05; }
-  50%      { transform: scale(1) rotate(180deg); opacity: 1; }
-}
-
-.fx-mote {
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 7px 2px rgba(255, 205, 235, .85);
-  animation: fxMote ease-in-out infinite;
-}
-
-@keyframes fxMote {
-  0%, 100% { transform: translate(0, 0) scale(.7); opacity: .1; }
-  30%      { opacity: .95; }
-  50%      { transform: translate(15px, -28px) scale(1); opacity: .45; }
-  75%      { opacity: .9; }
-}
-
+/* shooting stars: a gradient tail that streaks along its rotated axis
+   (rotate then translate), visible only briefly per loop */
 .fx-shoot {
   height: 3px;
   border-radius: 3px;
@@ -1058,32 +1025,126 @@ body.s3 .avatar {
   gap: 22px;
 }
 
+/* Wii-channel-style tile: chrome bezel, glossy plastic panel, top sheen */
 .lmDrop {
+  position: relative;
+  overflow: hidden;
   width: min(64vh, 480px);
   aspect-ratio: 4 / 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: var(--pink-card);
-  border: 4px dashed var(--pink);
-  border-radius: 22px;
+  gap: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #eef3f9 50%, #d9e2ee 100%);
+  border: 6px solid #e9ebf2;
+  border-radius: 26px;
   cursor: pointer;
   color: var(--pink-heading);
-  box-shadow: 7px 9px 0 rgba(120, 20, 80, .35);
+  box-shadow:
+    0 0 0 2px #828692,
+    0 9px 0 rgba(70, 80, 100, .3),
+    0 14px 22px rgba(0, 0, 0, .25),
+    inset 0 -12px 18px rgba(130, 145, 170, .3);
   background-size: cover;
   background-position: center;
   transition: transform .15s ease-out;
+  font-family: Arial, sans-serif;
 }
 
-.lmDrop:hover { transform: scale(1.02); }
+/* glass sheen across the top, like a Wii menu channel */
+.lmDrop::before {
+  content: '';
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  top: 2%;
+  height: 40%;
+  border-radius: 20px 20px 48% 48%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
 
-.lmDrop i { font-size: 54px; font-style: normal; }
+.lmDrop:hover { transform: scale(1.03); }
+.lmDrop:active { transform: scale(.99) translateY(3px); box-shadow: 0 0 0 2px #828692, 0 4px 0 rgba(70, 80, 100, .3), 0 8px 14px rgba(0, 0, 0, .25), inset 0 -12px 18px rgba(130, 145, 170, .3); }
 
-.lmDrop b { font-size: 20px; letter-spacing: 1px; }
+.lmDrop b {
+  font-size: 21px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 #fff;
+}
 
-.lmDrop span { font-size: 13px; }
+.lmDrop span { font-size: 13px; color: #8a6a7c; text-shadow: 0 1px 0 #fff; }
+
+/* CSS-drawn candy point-and-shoot: pink body, chrome lens, flash */
+.lmCam {
+  position: relative;
+  width: 122px;
+  height: 84px;
+  margin-top: 10px;
+  border-radius: 16px;
+  font-style: normal;
+  background: linear-gradient(180deg, #fdd7e9 0%, #f591c1 45%, #e0509d 100%);
+  border: 3px solid #fff;
+  box-shadow:
+    0 0 0 2px #cf3d8d,
+    0 6px 0 rgba(120, 20, 80, .3),
+    inset 0 3px 4px rgba(255, 255, 255, .85),
+    inset 0 -7px 10px rgba(160, 30, 100, .35);
+}
+
+.lmCam u { position: absolute; display: block; text-decoration: none; }
+
+/* the raised viewfinder hump */
+.camTop {
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 14px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #fdd7e9, #ef7ab8);
+  border: 3px solid #fff;
+  border-bottom: 0;
+  box-shadow: 0 0 0 2px #cf3d8d, inset 0 2px 2px rgba(255, 255, 255, .8);
+}
+
+.camLens {
+  inset: 0;
+  margin: auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #8fa2c6 6%, #3c4560 32%, #12141d 72%);
+  border: 5px solid #e9ebf2;
+  box-shadow:
+    0 0 0 2px #828692,
+    0 3px 6px rgba(0, 0, 0, .35),
+    inset 0 2px 4px rgba(255, 255, 255, .5);
+}
+
+.camLens::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  width: 15px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .85);
+  transform: rotate(-25deg);
+}
+
+.camFlash {
+  right: 10px;
+  top: 8px;
+  width: 17px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #fff, #ffe9a8 60%, #f6c544);
+  box-shadow: 0 0 7px rgba(255, 235, 150, .95), inset 0 1px 1px rgba(255, 255, 255, .9);
+}
 
 /* once a photo is picked it becomes the drop zone's background */
 .lmDrop.hasPhoto { border-style: solid; }
@@ -1235,3 +1296,87 @@ body.s3 .avatar {
 .lmFoot { visibility: hidden; }
 
 .lmFoot.show { visibility: visible; }
+
+/* ---- 🎲 randomize: small ghost button tucked under NEXT ---- */
+/* plain text link, not a button */
+.rndBtn {
+  display: block;
+  margin: 10px auto 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--pink-heading);
+  font-size: 13px;
+  font-weight: normal;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+}
+
+.rndBtn:hover { color: var(--pink); }
+
+/* ---- Photobooth: live selfie feed inside the stage-3 frame ---- */
+.booth {
+  position: relative;
+  width: min(64vh, 480px);
+}
+
+.booth .lmDrop { width: 100%; }
+
+#boothVid { display: none; }
+
+.booth.live #boothVid {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror, like a real photobooth screen */
+  background: #000;
+  border: 4px solid var(--pink);
+  border-radius: 22px;
+  box-shadow: 7px 9px 0 rgba(120, 20, 80, .35);
+}
+
+.booth.live .lmDrop { display: none; }
+
+.boothCount {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 130px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 5px 0 var(--pink-dark), 0 10px 28px rgba(0, 0, 0, .6);
+  pointer-events: none;
+}
+
+.boothCount.show {
+  display: flex;
+  animation: countPulse .8s ease-in-out infinite;
+}
+
+@keyframes countPulse {
+  0%   { transform: scale(1.5); opacity: .3; }
+  35%  { transform: scale(1); opacity: 1; }
+  100% { transform: scale(.96); opacity: .95; }
+}
+
+.boothFlash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 22px;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.boothFlash.go { animation: flashPop .5s ease-out; }
+
+@keyframes flashPop {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
