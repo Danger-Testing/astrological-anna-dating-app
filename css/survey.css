@@ -160,7 +160,7 @@
   font-size: 15px;
   color: var(--ink);
   box-shadow: inset 0 2px 4px rgba(180, 60, 120, .15);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -260,7 +260,7 @@
   letter-spacing: 1px;
   cursor: pointer;
   box-shadow: 0 6px 0 var(--pink-dark);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
 }
 
 .next:active {
@@ -921,7 +921,7 @@ body.s2 .avatar {
   font-size: 15px;
   color: var(--ink);
   box-shadow: inset 0 2px 4px rgba(180, 60, 120, .15);
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
 }
 
 #faves input:focus { outline: 2px solid var(--pink); }
@@ -1052,7 +1052,7 @@ body.s3 .avatar {
   background-size: cover;
   background-position: center;
   transition: transform .15s ease-out;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
 }
 
 /* glass sheen across the top, like a Wii menu channel */
@@ -1083,7 +1083,7 @@ body.s3 .avatar {
   font-size: 16px;
   letter-spacing: 1px;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
 }
 
 #lmTake {
@@ -1345,7 +1345,7 @@ body.s3 .avatar {
   font-weight: normal;
   text-decoration: underline;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
 }
 
 .rndBtn:hover { color: var(--pink); }
@@ -1547,7 +1547,7 @@ body.s4 .avatar { display: none; }
   top: 32%;
   font-size: min(9vw, 110px);
   font-weight: bold;
-  font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+  font-family: var(--font-round);
   color: #fff;
   text-shadow:
     0 3px 0 var(--pink-dark),

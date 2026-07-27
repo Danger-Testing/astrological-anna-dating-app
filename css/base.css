@@ -1,4 +1,20 @@
 /* Shared across all pages: palette, reset, star-field background. */
+
+/* M PLUS Rounded 1c — Japanese maru-gothic rounded type, the closest web
+   font to 2009 Nintendo DS menu typography (Tomodachi Collection era). */
+@font-face {
+  font-family: 'M PLUS Rounded 1c';
+  font-weight: 500;
+  font-display: swap;
+  src: url('../assets/fonts/mplus-rounded-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'M PLUS Rounded 1c';
+  font-weight: 800;
+  font-display: swap;
+  src: url('../assets/fonts/mplus-rounded-800.woff2') format('woff2');
+}
+
 :root {
   --pink: #f14e98;
   --pink-hot: #d63a90;
@@ -12,15 +28,20 @@
   --pink-soft: #ffd9e9;
   --ink: #4a1030;
   --sky: #edfaff;
+  --font-round: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', Arial, sans-serif;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-round);
+  font-weight: 500;
   background: var(--sky);
 }
+
+/* DS-menu weight for anything already bolded */
+b, strong, button, .next, h1, h2, h3 { font-weight: 800; }
 
 /* Full-bleed looping star video behind everything */
 .stars {

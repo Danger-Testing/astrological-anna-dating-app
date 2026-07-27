@@ -10,9 +10,11 @@
      upper-middle of the face box; complexion = mean skin luminance;
      symmetry = mean |left - right| luminance mirrored across the face box.
 
-   Anna's type (the weights): symmetrical/handsome first, darker complexion,
-   dark hair, dark eyes. Blonde/light-eyed costs points — UNLESS the symmetry
-   score is top-tier, in which case the handsome override waives penalties. */
+   The weights: conventional attractiveness (symmetry) dominates the score,
+   and the verdict is framed as you-vs-Anna league talk. Anna's personal
+   taste still nudges the number a little, but it's a small silent modifier —
+   the output never says what it measured, and a top-tier symmetry score
+   (the handsome override) zeroes out any taste deductions entirely. */
 var Looks = (function () {
   'use strict';
 
@@ -55,6 +57,7 @@ var Looks = (function () {
     if (skinL.length < W * H * 0.02) {
       return {
         score: 25, matched: false,
+        verdictLine: 'Anna couldn’t even find a face in this photo',
         flags: [{ text: 'Anna couldn’t even find a face in this photo', pts: -25, good: false }],
         stats: { noFace: true }
       };
@@ -111,45 +114,42 @@ var Looks = (function () {
     var mean = allL.reduce(function (a, b) { return a + b; }, 0) / allL.length;
     var sd = Math.sqrt(allL.reduce(function (a, b) { return a + (b - mean) * (b - mean); }, 0) / allL.length);
 
-    // -- Anna's scoring: base 50, features push it around --
+    // -- scoring: base 50; conventional attractiveness carries the verdict --
     var flags = [], score = 50;
-    var handsome = symScore >= 0.72; // the override: too handsome to penalize
+    var handsome = symScore >= 0.72; // the override: too handsome to deduct from
 
-    var symPts = Math.round(symScore * 16);
+    // symmetry is the main event: -14 (rough) to +26 (jury didn't deliberate)
+    var symPts = Math.round((symScore - 0.35) * 40);
     score += symPts;
-    if (symScore >= 0.72) flags.push({ text: 'genuinely symmetrical face — Anna noticed immediately', pts: symPts, good: true });
-    else if (symScore >= 0.45) flags.push({ text: 'face is acceptably symmetrical', pts: symPts, good: true });
-    else flags.push({ text: 'the two halves of this face are having an argument', pts: symPts, good: false });
+    if (handsome) flags.push({ text: 'conventionally handsome — the jury didn’t even deliberate', pts: symPts, good: true });
+    else if (symScore >= 0.45) flags.push({ text: 'solid bone structure — Anna looked twice', pts: symPts, good: true });
+    else flags.push({ text: 'the camera caught an asymmetry Anna couldn’t unsee', pts: symPts, good: false });
 
-    var tonePts = skinLuma < 95 ? 10 : skinLuma < 130 ? 7 : skinLuma < 165 ? 4 : skinLuma < 200 ? 1 : 0;
-    score += tonePts;
-    if (tonePts >= 7) flags.push({ text: 'darker complexion — exactly Anna’s type', pts: tonePts, good: true });
-    else if (tonePts >= 4) flags.push({ text: 'complexion passes the vibe check', pts: tonePts, good: true });
+    // Anna's taste: a small private nudge. Never itemized, never explained,
+    // and any deduction is waived when the face is objectively handsome.
+    var taste = skinLuma < 130 ? 4 : skinLuma < 180 ? 2 : 0;
+    if (hairLuma !== null) taste += hairLuma < 115 ? 4 : hairLuma < 160 ? 1 : (handsome ? 0 : -4);
+    if (eyeLuma !== null) taste += eyeLuma < 95 ? 2 : eyeLuma > 120 ? (handsome ? 0 : -2) : 1;
+    taste = Math.max(-6, Math.min(10, taste));
+    score += taste;
+    if (taste > 4) flags.push({ text: 'bonus points Anna refuses to explain', pts: taste, good: true });
+    else if (taste < 0) flags.push({ text: 'points deducted for reasons Anna declines to specify', pts: taste, good: false });
 
-    if (hairLuma !== null) {
-      var hairPts = hairLuma < 75 ? 10 : hairLuma < 115 ? 6 : hairLuma < 160 ? 2 : (handsome ? 0 : -8);
-      score += hairPts;
-      if (hairPts >= 6) flags.push({ text: 'dark hair detected — big points with Anna', pts: hairPts, good: true });
-      else if (hairPts < 0) flags.push({ text: 'blonde alert 🚨 Anna does not do blondes', pts: hairPts, good: false });
-      else if (hairPts === 0 && hairLuma >= 160) flags.push({ text: 'blonde… but the handsome override waives the penalty', pts: 0, good: true });
-    }
-
-    if (eyeLuma !== null) {
-      var eyePts = eyeLuma < 65 ? 6 : eyeLuma < 95 ? 3 : eyeLuma > 120 ? (handsome ? 0 : -4) : 1;
-      score += eyePts;
-      if (eyePts >= 3) flags.push({ text: 'dark eyes — Anna is listening', pts: eyePts, good: true });
-      else if (eyePts < 0) flags.push({ text: 'light eyes, and not handsome enough to get away with it', pts: eyePts, good: false });
-      else if (eyePts === 0) flags.push({ text: 'light eyes forgiven — that face is doing the heavy lifting', pts: 0, good: true });
-    }
-
-    var photoPts = sd > 55 ? 4 : sd > 40 ? 2 : 0;
+    var photoPts = sd > 55 ? 6 : sd > 40 ? 3 : 0;
     score += photoPts;
-    if (photoPts === 4) flags.push({ text: 'photogenic — this photo has production value', pts: 4, good: true });
+    if (photoPts === 6) flags.push({ text: 'photogenic — this photo has production value', pts: 6, good: true });
 
     score = Math.max(1, Math.min(100, Math.round(score)));
+    // the verdict is you-vs-Anna, not a feature checklist
+    var verdictLine =
+      score >= 82 ? 'somehow more attractive than Anna. she’s rattled.' :
+      score >= MATCH_AT ? 'attractiveness: evenly matched. Anna accepts.' :
+      score >= 48 ? 'so close — but Anna is slightly out of your league' :
+      'Anna is, respectfully, way out of your league';
     return {
       score: score,
       matched: score >= MATCH_AT,
+      verdictLine: verdictLine,
       flags: flags,
       stats: {
         skinLuma: Math.round(skinLuma), hairLuma: hairLuma && Math.round(hairLuma), eyeLuma: eyeLuma && Math.round(eyeLuma), symScore: +symScore.toFixed(2), contrast: Math.round(sd),

@@ -604,10 +604,10 @@
   var LM_MSGS = [
     'checking looks compatibility…',
     'measuring facial symmetry…',
-    'checking hair darkness…',
-    'estimating eye color…',
-    'running the blonde detector…',
-    'consulting anna’s type…'
+    'computing conventional attractiveness…',
+    'comparing against anna…',
+    'running the league calculator…',
+    'anna is deliberating…'
   ];
 
   lmCapture.addEventListener('click', function () {
@@ -643,12 +643,10 @@
     $('lmLoad').style.display = 'none';
     var v = $('lmVerdict');
     v.className = 'lmVerdict show ' + (looksScore.matched ? 'yes' : 'no');
-    // headline the flag that matches the verdict's mood
-    var pool = looksScore.flags.filter(function (f) { return f.good === looksScore.matched; });
     v.innerHTML = (looksScore.matched ? 'LOOKS MATCHED ' : 'NOT LOOKS MATCHED ') + heartSVG(!looksScore.matched) +
-      (pool.length ? '<small>' + pool[0].text + '</small>' : '');
+      '<small>' + looksScore.verdictLine + '</small>';
     $('lmHeart').innerHTML = heartSVG(!looksScore.matched);
-    setMood(looksScore.matched ? 'love' : 'angry');
+    setMood(looksScore.matched ? 'smug' : 'angry'); // matched: she KNEW she was right about you
     if (looksScore.matched) {
       var heartsBtn = document.querySelector('.anims button[data-fx="hearts"]');
       if (heartsBtn) heartsBtn.click();
