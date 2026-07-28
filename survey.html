@@ -109,34 +109,36 @@
     <section id="stage3">
       <header class="shelfHead">
         <b>LOOKS MATCH</b>
-        <span>upload a photo — Anna needs to see exactly who she's dealing with</span>
+        <span id="lmInstruction">upload a photo — Anna needs to see exactly who she's dealing with</span>
       </header>
 
       <div class="lmUpload" id="lmUpload">
         <input type="file" id="lmFile" accept="image/*" hidden>
-        <div class="booth" id="booth">
-          <video id="boothVid" autoplay playsinline muted></video>
-          <div class="boothCount" id="boothCount" aria-hidden="true"></div>
-          <div class="boothFlash" id="boothFlash" aria-hidden="true"></div>
-          <!-- choose: live photobooth or a photo from the library -->
-          <div class="lmDrop" id="lmDrop">
-            <i class="lmCam" aria-hidden="true">
-              <u class="camTop"></u>
-              <u class="camLens"></u>
-              <u class="camFlash"></u>
-            </i>
-            <b id="lmPrompt">show anna what you look like</b>
-            <div class="lmBtns">
-              <button type="button" id="lmTake">📷 take a photo</button>
-              <button type="button" id="lmPick">🖼 upload one</button>
+        <div class="lmMedia" id="lmMedia">
+          <div class="booth" id="booth">
+            <video id="boothVid" autoplay playsinline muted></video>
+            <div class="boothCount" id="boothCount" aria-hidden="true"></div>
+            <div class="boothFlash" id="boothFlash" aria-hidden="true"></div>
+            <!-- choose: live photobooth or a photo from the library -->
+            <div class="lmDrop" id="lmDrop">
+              <i class="lmCam" aria-hidden="true">
+                <u class="camTop"></u>
+                <u class="camLens"></u>
+                <u class="camFlash"></u>
+              </i>
+              <b id="lmPrompt">show anna what you look like</b>
+              <div class="lmBtns">
+                <button type="button" id="lmTake">take photo</button>
+                <button type="button" id="lmPick">upload</button>
+              </div>
             </div>
-            <span>face clearly visible · no group pics · Anna will know</span>
           </div>
         </div>
-        <button type="button" class="next lmCapture" id="lmCapture" disabled>CAPTURE →</button>
+        <button type="button" class="next lmCapture" id="lmCapture" disabled>NEXT</button>
       </div>
 
       <div class="lmStage" id="lmStage">
+        <div class="lmVerdict" id="lmVerdict"></div>
         <div class="lmPair">
           <figure class="pol you"><img id="lmYouImg" alt="you"><figcaption>you</figcaption></figure>
           <div class="lmHeart" id="lmHeart">💘</div>
@@ -146,7 +148,6 @@
           <div class="lmBarWrap"><div class="lmBar" id="lmBar"></div></div>
           <span class="lmMsg" id="lmMsg">checking looks compatibility…</span>
         </div>
-        <div class="lmVerdict" id="lmVerdict"></div>
         <footer class="shelfFoot lmFoot" id="lmFoot">
           <span class="seen" id="lmScoreLine"></span>
           <button type="button" class="next" id="nextBtn3">NEXT →</button>
@@ -188,8 +189,8 @@
       </footer>
     </section>
 
-    <!-- Stage 5: final verdict (rendered by js/final.js) -->
-    <section id="stage5"></section>
+    <!-- Stage 5: aggregate verdict; populated by js/final.js -->
+    <section id="stage5" aria-live="polite"></section>
 
     <div class="betas">
       <div class="anims betaPanel" id="animsPanel">

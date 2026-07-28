@@ -1026,6 +1026,8 @@ body.s3 #stage3 {
   z-index: 3;
 }
 
+#stage3.hasResult > .shelfHead { display: none; }
+
 body.s3 .card { display: none; }
 
 /* Anna shrinks into the corner exactly like stage 2 */
@@ -1041,8 +1043,19 @@ body.s3 .avatar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 22px;
+  padding-bottom: clamp(80px, 14vh, 130px);
+}
+
+.lmMedia {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
 /* Wii-channel-style tile: chrome bezel, glossy plastic panel, top sheen */
@@ -1120,8 +1133,12 @@ body.s3 .avatar {
 .lmBtns button:active { transform: translateY(4px); box-shadow: none; }
 
 .lmDrop b {
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: 32px;
   font-size: 21px;
   letter-spacing: 2px;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -1199,12 +1216,28 @@ body.s3 .avatar {
 /* once a photo is picked it becomes the drop zone's background */
 .lmDrop.hasPhoto { border-style: solid; }
 
-.lmDrop.hasPhoto i, .lmDrop.hasPhoto span { display: none; }
+.lmDrop.hasPhoto i,
+.lmDrop.hasPhoto span,
+.lmDrop.hasPhoto .lmBtns { display: none; }
 
 .lmDrop.hasPhoto b {
   background: rgba(255, 228, 240, .92);
   border-radius: 10px;
   padding: 8px 14px;
+}
+
+#lmPrompt.ready {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(255, 228, 240, .92);
+  color: var(--pink-heading);
+  font-size: 21px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .lmCapture { width: min(64vh, 480px); margin: 0; }
@@ -1240,6 +1273,14 @@ body.s3 .avatar {
   object-fit: cover;
   display: block;
   background: var(--sky);
+}
+
+.pol.you img {
+  width: 78%;
+  margin: 22px auto 0;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--pink-deep);
 }
 
 .pol figcaption {

@@ -723,7 +723,10 @@
       startCutout(img);
       lmDrop.classList.add('hasPhoto');
       lmDrop.style.backgroundImage = 'url("' + url + '")';
-      lmDrop.querySelector('b').textContent = 'hmm. okay. ready when you are';
+      $('lmInstruction').hidden = true;
+      $('lmPrompt').textContent = 'hmm. okay. ready when you are';
+      $('lmPrompt').classList.add('ready');
+      $('lmMedia').insertBefore($('lmPrompt'), $('booth'));
       lmCapture.disabled = false;
       $('lmYouImg').src = url;
     };
@@ -749,9 +752,9 @@
     // pixel pass always runs: it finds the face box for the polaroid cutout
     // and the stage-4 standee, and doubles as the fallback judge
     var local = Looks.analyze(lmImg);
-    if (local.stats && local.stats.face) {
-      $('lmYouImg').src = faceOnWhite(lmImg, local.stats.face);
-    }
+    var faceBox = (local.stats && local.stats.face) ||
+      { x0: .3, x1: .7, y0: .12, y1: .5 };
+    $('lmYouImg').src = faceSticker(lmImg, faceBox);
     // real judge: Claude vision (assets/looks-ai.js) when a key is set;
     // any failure (no key, network, model declined) falls back to the pixels
     var pending = Promise.resolve(local);
@@ -767,6 +770,7 @@
         });
       }
     }
+    $('stage3').classList.add('hasResult');
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
     var bar = $('lmBar'), msg = $('lmMsg'), i = 0;

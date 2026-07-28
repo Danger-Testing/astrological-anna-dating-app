@@ -179,7 +179,7 @@
   body.s3 #stage3 { inset: 0 4% 1%; }
 
   .booth,
-  .lmDrop { width: min(92vw, 54vh); }
+  .lmDrop { width: min(460px, 54vh); }
 
   /* bottom-sheet vibes: booth + CAPTURE hug the bottom so Anna's face stays
      visible above while she watches you pick a photo */
@@ -189,7 +189,9 @@
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
 
-  .lmCapture { width: min(92vw, 54vh); }
+  .lmMedia { flex: 0 0 auto; }
+
+  .lmCapture { width: min(460px, 54vh); }
 
   /* the paired polaroids shrink to sit side by side on a phone */
   .pol {

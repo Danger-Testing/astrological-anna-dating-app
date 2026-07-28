@@ -29,7 +29,7 @@
     var el = document.getElementById('stage5');
 
     el.innerHTML =
-      '<header class="shelfHead"><b>FINAL VERDICT</b><span>the stars have finished deliberating</span></header>' +
+      '<header class="shelfHead"><b>FINAL VERDICT</b></header>' +
       '<div class="fAgg"><b>' + agg + '%</b><span>' + (window.Synastry && Synastry.verdictFor ? Synastry.verdictFor(agg) : '') + '</span></div>' +
       '<div class="fRings">' + parts.map(function (p) { return ring(p[0], p[1]); }).join('') + '</div>' +
       (eligible
