@@ -267,6 +267,7 @@
      (iTunes Search API was tried first but Apple emptied its movie catalog.) */
   var favs = [];
   var favesBox = $('faves'), favInput = $('favInput'), favList = $('favList'), favChips = $('favChips');
+  var favesNextSlot = $('favesNextSlot');
   var nextMovieBtn = $('nextBtn2');
   var favDeb = null;
 
@@ -406,24 +407,24 @@
 
   var curStage = 1;
   var completedThrough = 0;
-  /* ---- Mobile: size Anna so her full face always clears the bottom sheet.
-     The static CSS guess can't track the sheet's real height, so measure it:
-     her chin sits ~62% down the portrait; scale her until the chin lands
-     just above whatever sheet the current stage shows. ---- */
+  /* ---- Mobile: the movie and looks stages share one CSS portrait size.
+     On the birth stage, measure the bottom sheet and scale Anna so her full
+     face still clears it. ---- */
   var mobileMQ = window.matchMedia('(max-width: 700px)');
   function sizeAvatar() {
     var av = $('av');
-    if (!mobileMQ.matches || document.body.classList.contains('s4') || document.body.classList.contains('s5')) {
+    var usesSharedStagePortrait = document.body.classList.contains('s2') ||
+      document.body.classList.contains('s3');
+    if (!mobileMQ.matches || usesSharedStagePortrait ||
+        document.body.classList.contains('s4') || document.body.classList.contains('s5')) {
       av.style.height = '';
       return;
     }
-    var sheet = document.body.classList.contains('s2') ? document.querySelector('.shelfCta')
-      : document.body.classList.contains('s3') ? document.querySelector('.booth')
-      : document.querySelector('.card');
+    var sheet = document.querySelector('.card');
     if (!sheet) { av.style.height = ''; return; }
     var sheetTop = sheet.getBoundingClientRect().top;
     var avTop = av.getBoundingClientRect().top;
-    var h = (sheetTop - avTop - 8) / 0.62;
+    var h = ((sheetTop - avTop - 8) / 0.62) * 0.82;
     if (h > 0 && isFinite(h)) {
       av.style.height = Math.max(180, Math.min(h, window.innerHeight * 0.92)) + 'px';
     }
@@ -598,6 +599,7 @@
     if (seenCount() <= 3 && favs.length < 2) {
       $('stage2').classList.add('needsFaves');
       favesBox.classList.add('show');
+      favesNextSlot.appendChild(nextMovieBtn);
       syncFavRequirement();
       favInput.focus();
       return;
@@ -747,9 +749,10 @@
       lmImg = img;
       startCutout(img);
       lmDrop.classList.add('hasPhoto');
-      lmDrop.style.backgroundImage = 'url("' + url + '")';
+      lmDrop.style.backgroundImage = '';
+      lmDrop.style.setProperty('--lm-photo', 'url("' + url + '")');
       $('lmInstruction').hidden = true;
-      $('lmPrompt').textContent = 'hmm. okay. ready when you are';
+      $('lmPrompt').textContent = 'hmm okay... ready when you are';
       $('lmPrompt').classList.add('ready', 'pinkTextBox');
       $('lmMedia').insertBefore($('lmPrompt'), $('booth'));
       lmCapture.hidden = false;
@@ -797,9 +800,9 @@
       }
     }
     var pairHeart = $('lmHeart');
-    pairHeart.className = 'lmHeart';
-    pairHeart.hidden = true;
-    pairHeart.innerHTML = '';
+    pairHeart.className = 'lmHeart pumping';
+    pairHeart.hidden = false;
+    pairHeart.innerHTML = '<span class="lmHeartWhole">' + heartSVG(false) + '</span>';
     $('stage3').classList.add('hasResult');
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
@@ -839,13 +842,15 @@
       '<small>' + looksScore.verdictLine + '</small>';
     var pairHeart = $('lmHeart');
     if (looksScore.matched) {
-      pairHeart.hidden = true;
-      pairHeart.innerHTML = '';
+      pairHeart.className = 'lmHeart pumping';
+      pairHeart.hidden = false;
+      pairHeart.innerHTML = '<span class="lmHeartWhole">' + heartSVG(false) + '</span>';
     } else {
+      pairHeart.className = 'lmHeart';
       pairHeart.innerHTML =
         '<span class="lmHeartWhole">' + heartSVG(false) + '</span>' +
-        '<span class="lmHeartHalf lmHeartLeft">' + heartSVG(true) + '</span>' +
-        '<span class="lmHeartHalf lmHeartRight">' + heartSVG(true) + '</span>';
+        '<span class="lmHeartHalf lmHeartLeft">' + heartSVG(false) + '</span>' +
+        '<span class="lmHeartHalf lmHeartRight">' + heartSVG(false) + '</span>';
       pairHeart.hidden = false;
       pairHeart.classList.add('breaking');
       var wholeHeart = pairHeart.querySelector('.lmHeartWhole');

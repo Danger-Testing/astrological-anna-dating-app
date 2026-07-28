@@ -65,6 +65,25 @@
     pointer-events: none;
   }
 
+  /* Feather only Anna's full-page portrait into the mobile background.
+     Height-check art and polaroids use separate elements and stay unmasked. */
+  .avatar > #anna {
+    -webkit-mask-image: radial-gradient(
+      ellipse 180% 100% at 50% 0%,
+      #000 0%,
+      #000 78%,
+      rgba(0, 0, 0, .7) 88%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 180% 100% at 50% 0%,
+      #000 0%,
+      #000 78%,
+      rgba(0, 0, 0, .7) 88%,
+      transparent 100%
+    );
+  }
+
   /* On the birth-details stage, lift Anna well above the bottom sheet so her
      face stays visible instead of sitting behind the form. */
   body:not(.s2):not(.s3):not(.s4):not(.s5) .avatar {
@@ -77,13 +96,6 @@
   body.s3 .avatar {
     transform: translateX(-50%);
     z-index: 1;
-  }
-
-  /* Match the initial Looks upload portrait to stage one's lifted placement.
-     Keep the dedicated result composition unchanged after comparison. */
-  body.s3:has(#stage3:not(.hasResult)) .avatar {
-    bottom: 24vh;
-    bottom: 24dvh;
   }
 
   /* dev panels don't fit the phone screen — desktop-only */
@@ -133,7 +145,7 @@
     margin: 0 0 4px;
   }
 
-  /* ================= stage 2: horizontal film strip ================= */
+  /* ================= stage 2: compact movie grid ================= */
 
   body.s2 #stage2 {
     inset: 0;
@@ -146,19 +158,23 @@
 
   .shelfHead span { font-size: 12px; }
 
-  /* .shelf is display:contents on desktop (rows keep their grid); here it
-     becomes one thumb-scrollable strip and the rows dissolve into it */
+  /* .shelf is display:contents on desktop (rows keep their grid); here the
+     rows dissolve into one 4 × 3 grid so all 12 movies remain visible. */
   .shelf {
-    display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: end;
-    gap: 14px;
+    justify-items: center;
+    gap: 8px;
+    width: min(calc(100% - 24px), calc(42vh + 30px));
+    width: min(calc(100% - 24px), calc(42dvh + 30px));
     margin-top: auto;
-    padding: 20px 18px 2px;
-    border-bottom: 12px solid transparent;
-    border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 12px 0;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 8px 10px 4px;
+    overflow: visible;
+    border: 0;
+    border-image: none;
   }
 
   #stage2.needsFaves .shelf { display: none; }
@@ -168,12 +184,17 @@
   }
 
   .case {
-    flex: 0 0 auto;
-    /* 3.5 posters visible: the half-cut one makes the horizontal scroll obvious */
-    width: calc((100vw - 60px) / 3.5);
-    max-width: 160px;
-    scroll-snap-align: center;
-    margin-bottom: 6px;
+    width: min(100%, 10.5vh);
+    width: min(100%, 10.5dvh);
+    max-width: none;
+    margin-bottom: 0;
+  }
+
+  .case .seenTag {
+    top: 4px;
+    right: -4px;
+    padding: 2px 5px;
+    font-size: 9px;
   }
 
   /* no hover on touch: picked lift is the only resting transform */
@@ -185,7 +206,8 @@
   }
 
   #stage2 .shelfFoot {
-    margin-top: auto;
+    margin-top: 24px;
+    padding-top: 0;
     padding-left: 18px;
     padding-right: 18px;
   }
@@ -199,6 +221,10 @@
   #faves {
     bottom: calc(88px + env(safe-area-inset-bottom));
     width: 94vw;
+  }
+
+  #stage2.needsFaves #faves {
+    bottom: calc(18px + env(safe-area-inset-bottom));
   }
 
   /* ================= stage 3: looks match ================= */

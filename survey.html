@@ -82,12 +82,12 @@
     <section id="stage2">
       <header class="shelfHead">
         <b>MOVIE KNOWLEDGE</b>
-        <span id="movieInstruction">select every movie you've <i>actually</i> seen — Anna can tell when you lie</span>
+        <span id="movieInstruction" hidden>what have you <i>actually</i> seen — Anna can tell when you lie</span>
         <span id="seenCount" hidden>0 / 12 seen</span>
       </header>
       <!-- .shelf is display:contents on desktop; on mobile it turns the two
-           rows into one horizontal film strip -->
-      <b class="shelfCta">choose the movies you've seen ↓</b>
+           source rows into one four-column grid -->
+      <b class="shelfCta">choose movies you've seen ↓</b>
       <div class="shelf">
         <div class="shelfRow" id="shelfRow1"></div>
         <div class="shelfRow" id="shelfRow2"></div>
@@ -100,6 +100,7 @@
           <div id="favList"></div>
         </div>
         <div id="favChips"></div>
+        <div id="favesNextSlot"></div>
       </div>
       <footer class="shelfFoot">
         <button type="button" class="next" id="nextBtn2">NEXT →</button>
@@ -127,7 +128,7 @@
                 <u class="camLens"></u>
                 <u class="camFlash"></u>
               </i>
-              <b id="lmPrompt">show anna what you look like</b>
+              <b id="lmPrompt">show anna<br>what you look like</b>
               <div class="lmBtns">
                 <button type="button" id="lmTake">take photo</button>
                 <button type="button" id="lmPick">upload</button>

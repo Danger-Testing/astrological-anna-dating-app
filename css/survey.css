@@ -669,6 +669,8 @@ body.s2 .avatar {
   border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 14px 0;
 }
 
+#shelfRow2 { padding-top: 0; }
+
 @media (min-width: 701px) {
   body.s2 .shelfRow { transform: translateY(-36px); }
 }
@@ -921,6 +923,24 @@ body.s2 .avatar {
 
 #faves.show { display: block; }
 
+#stage2.needsFaves #faves {
+  bottom: 18px;
+}
+
+#stage2.needsFaves > .shelfFoot {
+  display: none;
+}
+
+#stage2.needsFaves .shelfCta {
+  display: none;
+}
+
+#favesNextSlot #nextBtn2 {
+  width: 100%;
+  margin: 14px 0 0;
+  padding: 14px;
+}
+
 #nextBtn2 {
   transition: opacity .25s ease, filter .25s ease;
 }
@@ -1111,10 +1131,13 @@ body.s3 .avatar {
 .lmBtns {
   display: flex;
   gap: 12px;
-  margin: 4px 0 2px;
+  width: calc(100% - 32px);
+  margin: 4px 16px 2px;
 }
 
 .lmBtns button {
+  flex: 1 1 0;
+  min-width: 0;
   padding: 13px 20px;
   border: 0;
   border-radius: 13px;
@@ -1234,8 +1257,8 @@ body.s3 .avatar {
    photo-area pseudo-element so the bottom caption stays clean. */
 .lmDrop.hasPhoto {
   aspect-ratio: 5 / 6;
-  background-color: #fff;
-  background-size: 0 0;
+  background: #fff;
+  opacity: 1;
   border: 0;
   border-radius: 6px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, .45);
@@ -1249,7 +1272,7 @@ body.s3 .avatar {
   height: auto;
   border-radius: 2px;
   background-color: var(--sky);
-  background-image: inherit;
+  background-image: var(--lm-photo);
   background-position: center;
   background-size: cover;
 }
@@ -1364,6 +1387,10 @@ body.s3 .avatar {
   transform-origin: center;
 }
 
+.lmHeart.pumping .lmHeartWhole {
+  animation: heartPumpOnce .8s ease-in-out infinite;
+}
+
 .lmHeart.breaking .lmHeartWhole {
   animation:
     heartPumpOnce .5s ease-in-out 4,
@@ -1422,6 +1449,8 @@ body.s3 .avatar {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lmHeart.pumping .lmHeartWhole { animation: none; }
+
   .lmHeart.breaking .lmHeartWhole { visibility: hidden; animation: none; }
 
   .lmHeartLeft {
@@ -1875,7 +1904,7 @@ body.s4 .avatar { display: none; }
    Buttons stay in the DOM so stage/reveal reactions can still drive them. ---- */
 body.prod .betas { display: none !important; }
 
-/* stage 4 sits on the palest part of the sky — solid DS colors, no shadows */
-body.s4 .shelfHead b { color: var(--pink); }
-body.s4 .shelfHead span { color: var(--pink-heading); }
+/* Keep the height-check heading legible over every background frame. */
+body.s4 .shelfHead b,
+body.s4 .shelfHead span { color: #fff; }
 body.s4 .shelfFoot .seen { color: var(--pink-heading); }

@@ -39,7 +39,7 @@ const SYSTEM = [
   '',
   'Scoring: 0–100 integer; "matched" is true when score >= 62. Calibrate: clearly conventionally attractive → 72–95; pleasant but ordinary → 45–61; only genuinely unflattering photos land below 45. If no human face is clearly visible: score 25, matched false, verdictLine "Anna couldn\'t even find a face in this photo".',
   '',
-  'verdictLine: ONE short you-vs-Anna league line, e.g. "somehow more attractive than Anna. she\'s rattled." / "attractiveness: evenly matched. Anna accepts." / "so close — but Anna is slightly out of your league" / "Anna is, respectfully, way out of your league".',
+  'verdictLine: ONE short you-vs-Anna league line, e.g. "somehow more attractive than Anna. she\'s rattled." / "attractiveness: evenly matched. Anna accepts." / "Anna is slightly out of your league" / "Anna is, respectfully, way out of your league".',
   '',
   'flags: 2–4 short playful items {text, pts, good} whose pts roughly sum to score minus 50. STRICT RULE for all output text: never mention or allude to skin tone, ethnicity, hair color or texture, eye color, weight, age, or any specific physical feature. Keep praise and dings abstract and funny — "conventionally handsome — the jury didn\'t even deliberate", "bonus points Anna refuses to explain", "the camera caught an angle Anna couldn\'t unsee", "photogenic — this photo has production value". Be playful and warm, never cruel; the joke is Anna\'s pickiness, not the player\'s face.'
 ].join('\n');

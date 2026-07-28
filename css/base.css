@@ -73,7 +73,7 @@ body {
 .pinkTextBox::before {
   z-index: -2;
   background: url('../assets/halftone-text-box.png') center / cover no-repeat;
-  opacity: .3;
+  opacity: .6;
 }
 
 .pinkTextBox::after {
