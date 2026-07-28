@@ -81,8 +81,9 @@
     <!-- Stage 2: the movie test (Blu-ray shelf; cases are built by js/survey.js) -->
     <section id="stage2">
       <header class="shelfHead">
-        <b>THE MOVIE TEST</b>
-        <span>click every one you've <i>actually</i> seen — Anna can tell when you lie</span>
+        <b>MOVIE KNOWLEDGE</b>
+        <span id="movieInstruction">select every movie you've <i>actually</i> seen — Anna can tell when you lie</span>
+        <span id="seenCount" hidden>0 / 12 seen</span>
       </header>
       <!-- .shelf is display:contents on desktop; on mobile it turns the two
            rows into one horizontal film strip -->
@@ -101,7 +102,6 @@
         <div id="favChips"></div>
       </div>
       <footer class="shelfFoot">
-        <span class="seen" id="seenCount">0 / 12 seen</span>
         <button type="button" class="next" id="nextBtn2">NEXT →</button>
       </footer>
     </section>
@@ -158,8 +158,9 @@
     <!-- Stage 4: the height check (standees + ruler slider; face comes from stage 3) -->
     <section id="stage4">
       <header class="shelfHead">
-        <b>THE HEIGHT CHECK</b>
-        <span>drag the ruler to set YOUR height — be honest, Anna measures everyone at the door</span>
+        <b>HEIGHT CHECK</b>
+        <span id="hcLine" hidden>you vs. anna (5′2″)</span>
+        <span id="hcInstruction">drag the ruler — be honest, Anna measures everyone at the door</span>
       </header>
 
       <div class="hcFloor" id="hcFloor">
@@ -184,7 +185,6 @@
       </div>
 
       <footer class="shelfFoot">
-        <span class="seen" id="hcLine">you vs. anna (5′2″)</span>
         <button type="button" class="next" id="nextBtn4">NEXT →</button>
       </footer>
     </section>

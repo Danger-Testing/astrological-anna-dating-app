@@ -253,6 +253,10 @@
       c.classList.toggle('picked', seen[m.slug]);
       var n = Object.keys(seen).filter(function (k) { return seen[k]; }).length;
       $('seenCount').textContent = n + ' / ' + MOVIES.length + ' seen';
+      if (n > 0) {
+        $('movieInstruction').hidden = true;
+        $('seenCount').hidden = false;
+      }
     });
   });
 
@@ -435,6 +439,10 @@
       node.classList.toggle('active', i === n - 1);
       node.classList.toggle('done', i < completedThrough);
     });
+    document.querySelector('.map').style.setProperty(
+      '--route-progress',
+      Math.min(completedThrough, 4) * 25 + '%'
+    );
     setTimeout(sizeAvatar, 50); // after the stage's sheet has laid out
   }
   // completed nodes are clickable to go back and redo an earlier stage
@@ -577,6 +585,7 @@
   // Movie taste folds into the score, then the reveal hands off to stage 3.
   var tasteResult = null;
   $('nextBtn2').addEventListener('click', function () {
+    $('movieInstruction').hidden = true;
     if (!synastryResult) return;
     if (seenCount() <= 3 && favs.length < 2) {
       favesBox.classList.add('show');
@@ -903,38 +912,35 @@
     };
   }
 
-  // JibJab-style head for the standee: with a segmentation cutout it's the
-  // real head silhouette (CSS crops it round); otherwise fall back to the
-  // ellipse cut around the detected face box
+  // Build a square, slightly zoomed crop around the segmented or detected
+  // face. CSS clips it into a fixed-size circle that never stretches.
   function faceSticker(img, box) {
     var m = lmCut && headMetrics(lmCut);
     if (m) {
-      // just the head: hair top to the shoulder jump, nothing below
-      var cropW = m.width * 1.15;
-      var cropH = (m.headH || m.width * 1.3) * 1.06;
-      var S = 300, SH = Math.max(120, Math.round(S * cropH / cropW));
+      var cropSide = Math.max(m.width * 1.25, (m.headH || m.width * 1.3) * 1.12);
+      var S = 300;
       var c2 = document.createElement('canvas');
-      c2.width = S; c2.height = SH;
+      c2.width = S; c2.height = S;
       c2.getContext('2d').drawImage(lmCut,
-        m.cx - cropW / 2, m.top - cropH * 0.03, cropW, cropH, 0, 0, S, SH);
+        m.cx - cropSide / 2, m.top - cropSide * .05,
+        cropSide, cropSide, 0, 0, S, S);
       return c2.toDataURL('image/png');
     }
     var bw = (box.x1 - box.x0) * img.naturalWidth, bh = (box.y1 - box.y0) * img.naturalHeight;
     var cx = (box.x0 + box.x1) / 2 * img.naturalWidth, cy = (box.y0 + box.y1) / 2 * img.naturalHeight;
-    var rx = bw * 0.72, ry = bh * 0.82; // a hair wider/taller than the box for hair + chin
-    var W = 300, H = Math.max(200, Math.round(300 * (ry / rx)));
+    var side = Math.min(
+      Math.max(bw, bh) * 1.25,
+      img.naturalWidth,
+      img.naturalHeight
+    );
+    var sx = Math.max(0, Math.min(img.naturalWidth - side, cx - side / 2));
+    var sy = Math.max(0, Math.min(img.naturalHeight - side, cy - side * .48));
+    var W = 300, H = 300;
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
     var ctx = c.getContext('2d');
-    ctx.beginPath();
-    ctx.ellipse(W / 2, H / 2, W / 2 - 2, H / 2 - 2, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.fill(); // the white border IS a bigger white ellipse underneath
-    ctx.beginPath();
-    ctx.ellipse(W / 2, H / 2, W / 2 - 14, H / 2 - 14, 0, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2, 14, 14, W - 28, H - 28);
-    return c.toDataURL('image/png');
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, W, H);
+    return c.toDataURL('image/jpeg', .92);
   }
   var stickerUrl = null, stickerFor = '';
 
@@ -1114,6 +1120,8 @@
 
   $('hcSlider').addEventListener('input', function () {
     hcIn = +this.value;
+    $('hcInstruction').hidden = true;
+    $('hcLine').hidden = false;
     syncStandees();
   });
   window.addEventListener('resize', function () {

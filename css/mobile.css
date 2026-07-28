@@ -176,6 +176,17 @@
     justify-content: space-between;
   }
 
+  #stage2 .shelfFoot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  #stage2 .shelfFoot .next {
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+  }
+
   #faves {
     bottom: calc(88px + env(safe-area-inset-bottom));
     width: 94vw;
@@ -200,6 +211,8 @@
 
   .lmCapture { width: min(460px, 54vh, calc(100vw - 36px)); }
 
+  .lmVerdict { margin-top: 18px; }
+
   /* the paired polaroids shrink to sit side by side on a phone */
   .pol {
     width: min(40vw, 38vh);
@@ -211,6 +224,12 @@
   .lmPair {
     align-items: flex-end;
     padding-bottom: 18px;
+  }
+
+  /* Center the heart over the two photo images, not near their top edges. */
+  .lmHeart {
+    top: 72%;
+    bottom: auto;
   }
 
   .lmStage .shelfFoot,
@@ -229,7 +248,15 @@
 
   body.s4 #stage4 { z-index: 3; }
 
-  #stage4 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  #stage4 .shelfFoot {
+    padding: 12px 18px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  #stage4 .shelfFoot .next {
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+  }
 }
 
 /* ================= mobile hardening (appended layer) ================= */
