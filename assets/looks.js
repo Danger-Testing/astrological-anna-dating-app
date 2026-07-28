@@ -144,7 +144,7 @@ var Looks = (function () {
     var verdictLine =
       score >= 82 ? 'somehow more attractive than Anna. she’s rattled.' :
       score >= MATCH_AT ? 'attractiveness: evenly matched. Anna accepts.' :
-      score >= 48 ? 'so close — but Anna is slightly out of your league' :
+      score >= 48 ? 'so close — Anna is slightly out of your league' :
       'Anna is, respectfully, way out of your league';
     return {
       score: score,

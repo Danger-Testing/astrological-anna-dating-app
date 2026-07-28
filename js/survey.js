@@ -393,6 +393,7 @@
   var STAGE_FX = { 1: 'waterfall', 2: 'none', 3: 'none', 4: 'shooting', 5: 'shooting' };
 
   var curStage = 1;
+  var completedThrough = 0;
   /* ---- Mobile: size Anna so her full face always clears the bottom sheet.
      The static CSS guess can't track the sheet's real height, so measure it:
      her chin sits ~62% down the portrait; scale her until the chin lands
@@ -419,6 +420,8 @@
   window.addEventListener('load', sizeAvatar);
 
   function goStage(n) {
+    if (n > curStage) completedThrough = Math.max(completedThrough, n - 1);
+    if (n === 5) completedThrough = 5;
     curStage = n;
     document.body.classList.toggle('s2', n === 2);
     document.body.classList.toggle('s3', n === 3);
@@ -430,7 +433,7 @@
     setEffect(STAGE_FX[n] || 'none');
     document.querySelectorAll('.map .node').forEach(function (node, i) {
       node.classList.toggle('active', i === n - 1);
-      node.classList.toggle('done', i < n - 1);
+      node.classList.toggle('done', i < completedThrough);
     });
     setTimeout(sizeAvatar, 50); // after the stage's sheet has laid out
   }
@@ -752,9 +755,8 @@
     // pixel pass always runs: it finds the face box for the polaroid cutout
     // and the stage-4 standee, and doubles as the fallback judge
     var local = Looks.analyze(lmImg);
-    var faceBox = (local.stats && local.stats.face) ||
-      { x0: .3, x1: .7, y0: .12, y1: .5 };
-    $('lmYouImg').src = faceSticker(lmImg, faceBox);
+    // Keep the uploaded photo rectangular so it matches Anna's polaroid.
+    $('lmYouImg').src = lmImg.src;
     // real judge: Claude vision (assets/looks-ai.js) when a key is set;
     // any failure (no key, network, model declined) falls back to the pixels
     var pending = Promise.resolve(local);
@@ -803,7 +805,10 @@
     $('lmLoad').style.display = 'none';
     var v = $('lmVerdict');
     v.className = 'lmVerdict show ' + (looksScore.matched ? 'yes' : 'no');
-    v.innerHTML = (looksScore.matched ? 'LOOKS MATCHED ' : 'NOT LOOKS MATCHED ') + heartSVG(!looksScore.matched) +
+    v.innerHTML = '<span class="lmVerdictScore">' + looksScore.score + '/100</span>' +
+      '<span class="lmVerdictStatus">' +
+      (looksScore.matched ? 'LOOKS MATCHED ' : 'NOT LOOKS MATCHED ') +
+      heartSVG(!looksScore.matched) + '</span>' +
       '<small>' + looksScore.verdictLine + '</small>';
     $('lmHeart').innerHTML = heartSVG(!looksScore.matched);
     setMood(looksScore.matched ? 'smug' : 'angry'); // matched: she KNEW she was right about you
@@ -811,7 +816,6 @@
       var heartsBtn = document.querySelector('.anims button[data-fx="hearts"]');
       if (heartsBtn) heartsBtn.click();
     }
-    $('lmScoreLine').textContent = 'looks score: ' + looksScore.score + ' / 100';
     $('lmFoot').classList.add('show');
   }
 

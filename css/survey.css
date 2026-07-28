@@ -25,7 +25,7 @@
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--pink-soft), #f772b0 30%, var(--pink) 60%, var(--pink-dark) 85%);
+  background: radial-gradient(circle at 35% 30%, #ffffff, #d9dbe2 45%, #9fa3af);
   border: 6px solid #e9ebf2;
   box-shadow:
     0 0 0 2px #828692,
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--pink-deep);
   font-weight: bold;
   font-size: 22px;
 }
@@ -793,10 +793,10 @@ body.s2 .avatar {
   padding: 12px 36px;
 }
 
-/* Progress rail: a finished stage turns chrome with a pink check */
+/* Progress rail: unfinished stages are chrome; completed stages turn pink. */
 .node.done {
-  background: radial-gradient(circle at 35% 30%, #ffffff, #d9dbe2 45%, #9fa3af);
-  color: var(--pink-deep);
+  background: radial-gradient(circle at 35% 30%, var(--pink-soft), #f772b0 30%, var(--pink) 60%, var(--pink-dark) 85%);
+  color: #fff;
   cursor: pointer;
 }
 
@@ -1068,7 +1068,7 @@ body.s3 .avatar {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #eef3f9 50%, #d9e2ee 100%);
   border: 6px solid #e9ebf2;
   border-radius: 26px;
@@ -1150,6 +1150,7 @@ body.s3 .avatar {
   width: 122px;
   height: 84px;
   margin-top: 10px;
+  margin-bottom: 8px;
   border-radius: 16px;
   font-style: normal;
   background: linear-gradient(180deg, #fdd7e9 0%, #f591c1 45%, #e0509d 100%);
@@ -1213,8 +1214,43 @@ body.s3 .avatar {
   box-shadow: 0 0 7px rgba(255, 235, 150, .95), inset 0 1px 1px rgba(255, 255, 255, .9);
 }
 
-/* once a photo is picked it becomes the drop zone's background */
-.lmDrop.hasPhoto { border-style: solid; }
+/* Once a photo is picked, the channel tile becomes the same white polaroid
+   used by the comparison result. The uploaded image is inherited by the
+   photo-area pseudo-element so the bottom caption stays clean. */
+.lmDrop.hasPhoto {
+  aspect-ratio: 9 / 10;
+  background-color: #fff;
+  background-size: 0 0;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, .45);
+}
+
+.lmDrop.hasPhoto::before {
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  bottom: 54px;
+  height: auto;
+  border-radius: 2px;
+  background-color: var(--sky);
+  background-image: inherit;
+  background-position: center;
+  background-size: cover;
+}
+
+.lmDrop.hasPhoto::after {
+  content: 'YOU';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 17px;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-align: center;
+}
 
 .lmDrop.hasPhoto i,
 .lmDrop.hasPhoto span,
@@ -1251,10 +1287,11 @@ body.s3 .avatar {
 
 .lmPair {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3vw;
+  gap: 24px;
 }
 
 .pol {
@@ -1273,14 +1310,6 @@ body.s3 .avatar {
   object-fit: cover;
   display: block;
   background: var(--sky);
-}
-
-.pol.you img {
-  width: 78%;
-  margin: 22px auto 0;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--pink-deep);
 }
 
 .pol figcaption {
@@ -1302,12 +1331,19 @@ body.s3 .avatar {
 }
 
 .lmHeart {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
   font-size: 52px;
   animation: heartThrob 1s ease-in-out infinite;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .3));
 }
 
-@keyframes heartThrob { 50% { transform: scale(1.25); } }
+@keyframes heartThrob {
+  50% { transform: translate(-50%, -50%) scale(1.25); }
+}
 
 /* Loading bar: candy stripes crawling while the "analysis" runs */
 .lmLoad {
@@ -1369,6 +1405,21 @@ body.s3 .avatar {
   -webkit-backdrop-filter: blur(4px);
 }
 
+.lmVerdictScore,
+.lmVerdictStatus {
+  display: block;
+}
+
+.lmVerdictScore {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.lmVerdictStatus {
+  margin-top: 8px;
+  line-height: 1.2;
+}
+
 .lmVerdict.yes {
   color: #fff;
   box-shadow: 0 0 26px rgba(140, 255, 170, .4);
@@ -1383,7 +1434,7 @@ body.s3 .avatar {
   display: block;
   font-size: 15px;
   letter-spacing: 1px;
-  margin-top: 4px;
+  margin-top: 8px;
   color: #fff;
 }
 
@@ -1391,7 +1442,10 @@ body.s3 .avatar {
   from { opacity: 0; transform: scale(2.4) rotate(-6deg); }
 }
 
-.lmFoot { visibility: hidden; }
+.lmFoot {
+  visibility: hidden;
+  justify-content: center;
+}
 
 .lmFoot.show { visibility: visible; }
 

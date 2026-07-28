@@ -22,8 +22,9 @@
 </head>
 <body>
 
-  <video class="stars" autoplay muted loop playsinline>
-    <source src="stars.mp4">
+  <video class="stars" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+    <source src="assets/dream-sky-mobile-loop.webm" type="video/webm" media="(max-width: 700px)">
+    <source src="assets/dream-sky-desktop-loop.webm" type="video/webm">
   </video>
 
   <!-- Level-map progress rail -->
@@ -35,8 +36,8 @@
     <i class="node n4">4</i>
     <i class="node n5">5</i>
     <em class="lbl n1">astrology</em>
-    <em class="lbl n2">movie test</em>
-    <em class="lbl n3">looks match</em>
+    <em class="lbl n2">movies</em>
+    <em class="lbl n3">looks</em>
     <em class="lbl n4">height</em>
     <em class="lbl n5">final</em>
   </nav>
@@ -149,7 +150,6 @@
           <span class="lmMsg" id="lmMsg">checking looks compatibility…</span>
         </div>
         <footer class="shelfFoot lmFoot" id="lmFoot">
-          <span class="seen" id="lmScoreLine"></span>
           <button type="button" class="next" id="nextBtn3">NEXT →</button>
         </footer>
       </div>
@@ -261,6 +261,7 @@
   <!-- gitignored local secrets (API key); 404s harmlessly if absent -->
   <script src="config.local.js"></script>
   <script src="assets/looks-ai.js?v=3"></script>
+  <script src="js/background-video.js"></script>
   <script src="js/final.js"></script>
   <script src="js/survey.js?v=2"></script>
 

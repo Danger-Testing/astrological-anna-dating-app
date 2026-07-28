@@ -65,6 +65,13 @@
     pointer-events: none;
   }
 
+  /* On the birth-details stage, lift Anna well above the bottom sheet so her
+     face stays visible instead of sitting behind the form. */
+  body:not(.s2):not(.s3):not(.s4):not(.s5) .avatar {
+    bottom: 14vh;
+    bottom: 14dvh;
+  }
+
   /* undo the desktop corner-shrink so she stays centered on s2/s3 */
   body.s2 .avatar,
   body.s3 .avatar {
@@ -179,7 +186,7 @@
   body.s3 #stage3 { inset: 0 4% 1%; }
 
   .booth,
-  .lmDrop { width: min(460px, 54vh); }
+  .lmDrop { width: min(460px, 54vh, calc(100vw - 32px)); }
 
   /* bottom-sheet vibes: booth + CAPTURE hug the bottom so Anna's face stays
      visible above while she watches you pick a photo */
@@ -191,7 +198,7 @@
 
   .lmMedia { flex: 0 0 auto; }
 
-  .lmCapture { width: min(460px, 54vh); }
+  .lmCapture { width: min(460px, 54vh, calc(100vw - 36px)); }
 
   /* the paired polaroids shrink to sit side by side on a phone */
   .pol {
@@ -199,8 +206,24 @@
     padding: 8px 8px 30px;
   }
 
+  /* Keep the result cards anchored just above their footer instead of
+     floating in the middle of Anna's face. */
+  .lmPair {
+    align-items: flex-end;
+    padding-bottom: 18px;
+  }
+
   .lmStage .shelfFoot,
   #stage3 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+
+  #stage3 .lmFoot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  #stage3 .lmFoot .next {
+    width: 100%;
+  }
 
   /* ================= stage 4: height check ================= */
 
