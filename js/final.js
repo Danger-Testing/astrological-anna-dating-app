@@ -39,7 +39,7 @@
           '<a class="next fBtn" target="_blank" rel="noopener" href="https://www.instagram.com/hard_boiledbabe/">📸 instagram</a>' +
           '<a class="next fBtn" target="_blank" rel="noopener" href="https://x.com/hard_boiledbabe">🐦 twitter</a>' +
           '</div></div>'
-        : '<div class="fAction no pinkTextBox"><b>unfortunately, you are not eligible to holla at anna at this time</b>' +
+        : '<div class="fAction no pinkTextBox"><b>unfortunately, you are not eligible to holla at Anna</b>' +
           '<span>here are some next best things:</span>' +
           '<div class="fCelebs">' + CONSOLATION.map(function (c) {
             return '<a target="_blank" rel="noopener" href="' + c[1] + '">' +

@@ -39,6 +39,9 @@
   }
 
   .n1 { left: max(4%, 34px); }
+  .n2 { left: calc(25% + max(2%, 17px)); }
+  .n3 { left: 50%; }
+  .n4 { left: calc(75% - max(2%, 17px)); }
   .n5 { left: calc(100% - max(4%, 34px)); }
 
   /* stage names don't fit five-across on a phone — the glowing node says
@@ -145,7 +148,7 @@
     margin: 0 0 4px;
   }
 
-  /* ================= stage 2: compact movie grid ================= */
+  /* ================= stage 2: horizontal movie strip ================= */
 
   body.s2 #stage2 {
     inset: 0;
@@ -158,24 +161,28 @@
 
   .shelfHead span { font-size: 12px; }
 
-  /* .shelf is display:contents on desktop (rows keep their grid); here the
-     rows dissolve into one 4 × 3 grid so all 12 movies remain visible. */
+  /* Dissolve the two desktop rows into one swipeable strip. Keeping part of
+     the next case visible makes the horizontal interaction discoverable. */
   .shelf {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: end;
-    justify-items: center;
-    gap: 8px;
-    width: min(calc(100% - 24px), calc(42vh + 30px));
-    width: min(calc(100% - 24px), calc(42dvh + 30px));
+    gap: 14px;
+    width: 100%;
     margin-top: auto;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 8px 10px 4px;
-    overflow: visible;
+    padding: 20px 18px 4px;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
     border: 0;
     border-image: none;
   }
+
+  .shelf::-webkit-scrollbar { display: none; }
 
   #stage2.needsFaves .shelf { display: none; }
 
@@ -184,17 +191,11 @@
   }
 
   .case {
-    width: min(100%, 10.5vh);
-    width: min(100%, 10.5dvh);
-    max-width: none;
-    margin-bottom: 0;
-  }
-
-  .case .seenTag {
-    top: 4px;
-    right: -4px;
-    padding: 2px 5px;
-    font-size: 9px;
+    flex: 0 0 auto;
+    width: calc((100vw - 60px) / 3.5);
+    max-width: 160px;
+    margin-bottom: 6px;
+    scroll-snap-align: center;
   }
 
   /* no hover on touch: picked lift is the only resting transform */
@@ -299,6 +300,13 @@
     margin: 0;
     padding: 14px;
   }
+
+  /* Final verdict: use the full mobile portrait instead of the half-scale
+     desktop corner treatment, so Anna remains a strong background presence. */
+  body.s5 .avatar {
+    transform: translateX(-50%);
+    z-index: 4;
+  }
 }
 
 /* ================= mobile hardening (appended layer) ================= */
@@ -318,10 +326,11 @@
     font-size: 16px;
   }
 
-  /* movie test: legible CTA right above the film strip */
+  /* Swap the mobile prompt and count: instruction beneath the title, live
+     count directly above the swipe strip. */
   .shelfCta {
     display: block;
-    margin-top: auto;
+    margin: 2px 0 0;
     text-align: center;
     color: #fff;
     font-size: 16px;
@@ -329,7 +338,13 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 10px rgba(0, 0, 0, .35);
   }
 
-  /* the CTA now owns the flex push; the strip hugs it */
+  #stage2 > #seenCount {
+    display: block !important;
+    margin-top: auto;
+    font-size: 14px;
+  }
+
+  /* The count owns the flex push; the strip hugs it. */
   .shelf { margin-top: 4px; }
 }
 

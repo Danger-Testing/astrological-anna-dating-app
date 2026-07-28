@@ -81,13 +81,13 @@
     <!-- Stage 2: the movie test (Blu-ray shelf; cases are built by js/survey.js) -->
     <section id="stage2">
       <header class="shelfHead">
-        <b>MOVIE KNOWLEDGE</b>
+        <b>MOVIE TEST</b>
         <span id="movieInstruction" hidden>what have you <i>actually</i> seen — Anna can tell when you lie</span>
-        <span id="seenCount" hidden>0 / 12 seen</span>
+        <b class="shelfCta">choose movies you've seen</b>
       </header>
-      <!-- .shelf is display:contents on desktop; on mobile it turns the two
-           source rows into one four-column grid -->
-      <b class="shelfCta">choose movies you've seen ↓</b>
+      <span id="seenCount" hidden>0 / 12 seen</span>
+      <!-- Desktop keeps two shelf rows; mobile dissolves those source rows
+           into one horizontal strip. -->
       <div class="shelf">
         <div class="shelfRow" id="shelfRow1"></div>
         <div class="shelfRow" id="shelfRow2"></div>
