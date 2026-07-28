@@ -49,11 +49,18 @@
 
   /* ================= Anna, front and center ================= */
 
-  /* Full-height, centered, behind every sheet — her face fills the gap
-     between the rail and the controls, all stages */
+  /* Centered, behind every sheet. Anchored by the HEAD (top), not the feet —
+     on short screens the bottom sheet swallows a bottom-anchored Anna's face,
+     so instead her face always sits just under the rail and her body runs
+     behind the sheet */
   .avatar {
-    height: 74vh;
-    height: 74dvh;
+    top: 12px;
+    bottom: auto;
+    /* eyes sit ~40% down the portrait; this scales her so they clear the
+       ~56dvh bottom sheet on any screen height (92dvh−180px ≈ 74dvh on an
+       iPhone, shrinks faster than the gap does on short windows) */
+    height: calc(92vh - 180px);
+    height: calc(92dvh - 180px);
     z-index: 1;
     pointer-events: none;
   }
@@ -83,14 +90,27 @@
     bottom: 0;
     top: auto;
     width: auto;
-    max-height: 64vh;
-    max-height: 64dvh;
+    max-height: 56vh;
+    max-height: 56dvh;
     overflow-y: auto;
     z-index: 6;
     border-radius: 22px 22px 0 0;
     border-bottom: 0;
     box-shadow: 0 -8px 26px rgba(120, 20, 80, .4);
-    padding: 16px 18px calc(12px + env(safe-area-inset-bottom));
+    padding: 12px 16px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  /* compact the sheet so it clears Anna's face on short screens */
+  .card b { margin: 8px 0 5px; }
+
+  .card select,
+  .card input,
+  .ampm button { height: 42px; }
+
+  .card .next {
+    margin-top: 12px;
+    padding: 12px;
+    font-size: 18px;
   }
 
   /* the sheet sits at the screen bottom, so suggestions must open upward */
@@ -134,7 +154,8 @@
 
   .case {
     flex: 0 0 auto;
-    width: 34vw;
+    /* 3.5 posters visible: the half-cut one makes the horizontal scroll obvious */
+    width: calc((100vw - 60px) / 3.5);
     max-width: 160px;
     scroll-snap-align: center;
     margin-bottom: 6px;
@@ -184,4 +205,53 @@
   body.s4 #stage4 { z-index: 3; }
 
   #stage4 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
+/* ================= mobile hardening (appended layer) ================= */
+@media (max-width: 700px) {
+
+  /* the oversized Anna cutout is wider than the phone screen — never let the
+     page scroll sideways out of view */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* 16px+ inputs stop iOS Safari's focus auto-zoom */
+  .card select,
+  .card input,
+  #faves input {
+    font-size: 16px;
+  }
+
+  /* movie test: legible CTA right above the film strip */
+  .shelfCta {
+    display: block;
+    margin-top: auto;
+    text-align: center;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 10px rgba(0, 0, 0, .35);
+  }
+
+  /* the CTA now owns the flex push; the strip hugs it */
+  .shelf { margin-top: 4px; }
+}
+
+/* looks match: pin the score + NEXT above Safari's bottom bar; the verdict
+   content scrolls/sits above the pinned strip instead of underneath it */
+@media (max-width: 700px) {
+  .lmStage .shelfFoot {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 8;
+    margin: 0;
+    padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(60, 5, 35, 0), rgba(60, 5, 35, .45) 60%);
+  }
+
+  .lmStage { padding-bottom: 96px; }
 }

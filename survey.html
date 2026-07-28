@@ -6,7 +6,19 @@
   <title>Astrological Anna — Survey</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/survey.css">
+  <link rel="stylesheet" href="css/final.css">
   <link rel="stylesheet" href="css/mobile.css">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <script>
+    // pre-paint: collapse beta panels that were hidden last session, so they
+    // never flash open on refresh (survey.js takes over after load)
+    try {
+      if (localStorage.getItem('annaBetaClosed:animsPanel') === '1') document.documentElement.classList.add('bcA');
+      if (localStorage.getItem('annaBetaClosed:moodsPanel') === '1') document.documentElement.classList.add('bcM');
+    } catch (e) {}
+  </script>
 </head>
 <body>
 
@@ -73,6 +85,7 @@
       </header>
       <!-- .shelf is display:contents on desktop; on mobile it turns the two
            rows into one horizontal film strip -->
+      <b class="shelfCta">choose the movies you've seen ↓</b>
       <div class="shelf">
         <div class="shelfRow" id="shelfRow1"></div>
         <div class="shelfRow" id="shelfRow2"></div>
@@ -145,7 +158,7 @@
     <section id="stage4">
       <header class="shelfHead">
         <b>THE HEIGHT CHECK</b>
-        <span>drag the ruler — be honest, Anna measures everyone at the door</span>
+        <span>drag the ruler to set YOUR height — be honest, Anna measures everyone at the door</span>
       </header>
 
       <div class="hcFloor" id="hcFloor">
@@ -162,7 +175,7 @@
             <u class="hcBase"></u>
           </div>
         </div>
-        <div class="hcReadout" id="hcReadout">5′9.0″</div>
+        <div class="hcYouLine" id="hcYouLine"><em id="hcYouLabel">you</em></div>
       </div>
 
       <div class="hcTool">
@@ -174,6 +187,9 @@
         <button type="button" class="next" id="nextBtn4">NEXT →</button>
       </footer>
     </section>
+
+    <!-- Stage 5: final verdict (rendered by js/final.js) -->
+    <section id="stage5"></section>
 
     <div class="betas">
       <div class="anims betaPanel" id="animsPanel">
@@ -215,6 +231,7 @@
       <div class="ringPct" id="ringPct">0%</div>
     </div>
     <div class="ringLabel">cosmic compatibility</div>
+    <div class="ringVerdict" id="ringVerdict"></div>
   </div>
 
   <!-- Temporary: full synastry report lives behind this until stages are done -->
@@ -234,11 +251,17 @@
     </div>
   </div>
 
+  <script src="assets/mediapipe/selfie_segmentation.js"></script>
   <script src="assets/astronomy.browser.min.js"></script>
-  <script src="assets/synastry.js"></script>
-  <script src="assets/taste.js"></script>
-  <script src="assets/looks.js"></script>
-  <script src="js/survey.js"></script>
+  <!-- ?v= busts stale browser caches when these change; bump if a fix "doesn't take" -->
+  <script src="assets/synastry.js?v=2"></script>
+  <script src="assets/taste.js?v=2"></script>
+  <script src="assets/looks.js?v=2"></script>
+  <!-- gitignored local secrets (API key); 404s harmlessly if absent -->
+  <script src="config.local.js"></script>
+  <script src="assets/looks-ai.js?v=3"></script>
+  <script src="js/final.js"></script>
+  <script src="js/survey.js?v=2"></script>
 
 </body>
 </html>

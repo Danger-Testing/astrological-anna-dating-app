@@ -140,6 +140,13 @@
     toggle.addEventListener('click', function () { apply(!panel.classList.contains('closed')); });
     try { if (localStorage.getItem(key) === '1') apply(true); } catch (e) {}
   });
+  // the real state is applied; drop the pre-paint collapse classes from <head>
+  document.documentElement.classList.remove('bcA', 'bcM');
+
+  /* ---- Production: the beta panels are dev tools; hide them off-localhost.
+     The buttons stay in the DOM so setMood/setEffect keep working. ---- */
+  var IS_DEV = /^(localhost|127\.0\.0\.1|::1)$/.test(location.hostname) || location.protocol === 'file:';
+  if (!IS_DEV) document.body.classList.add('prod');
 
   // #love, #angry, #fire, etc. in the URL preselects that mood or effect
   var hash = location.hash.slice(1);
@@ -300,6 +307,11 @@
     if (!title) return;
     if (favs.some(function (f) { return f.title.toLowerCase() === title.toLowerCase(); })) return;
     favs.push({ title: title, art: art || '' });
+    // instant disgust when a normie favorite hits the list
+    if (window.Taste && Taste.classify(title) === 'normie') {
+      setMood('disgusted');
+      setEffect('fire');
+    }
     renderFavChips();
     favInput.value = '';
     favList.style.display = 'none';
@@ -376,17 +388,51 @@
     };
   }
 
+  // ambient background effect per stage; applied on every stage switch,
+  // which also cleans up any reaction effect left over from a reveal
+  var STAGE_FX = { 1: 'waterfall', 2: 'none', 3: 'none', 4: 'shooting', 5: 'shooting' };
+
+  var curStage = 1;
+  /* ---- Mobile: size Anna so her full face always clears the bottom sheet.
+     The static CSS guess can't track the sheet's real height, so measure it:
+     her chin sits ~62% down the portrait; scale her until the chin lands
+     just above whatever sheet the current stage shows. ---- */
+  var mobileMQ = window.matchMedia('(max-width: 700px)');
+  function sizeAvatar() {
+    var av = $('av');
+    if (!mobileMQ.matches || document.body.classList.contains('s4') || document.body.classList.contains('s5')) {
+      av.style.height = '';
+      return;
+    }
+    var sheet = document.body.classList.contains('s2') ? document.querySelector('.shelfCta')
+      : document.body.classList.contains('s3') ? document.querySelector('.booth')
+      : document.querySelector('.card');
+    if (!sheet) { av.style.height = ''; return; }
+    var sheetTop = sheet.getBoundingClientRect().top;
+    var avTop = av.getBoundingClientRect().top;
+    var h = (sheetTop - avTop - 8) / 0.62;
+    if (h > 0 && isFinite(h)) {
+      av.style.height = Math.max(180, Math.min(h, window.innerHeight * 0.92)) + 'px';
+    }
+  }
+  window.addEventListener('resize', sizeAvatar);
+  window.addEventListener('load', sizeAvatar);
+
   function goStage(n) {
+    curStage = n;
     document.body.classList.toggle('s2', n === 2);
     document.body.classList.toggle('s3', n === 3);
     document.body.classList.toggle('s4', n === 4);
+    document.body.classList.toggle('s5', n === 5);
     // leaving stage 3 releases the photobooth camera
     if (n !== 3) stopBooth();
     if (n === 4) syncStandees();
+    setEffect(STAGE_FX[n] || 'none');
     document.querySelectorAll('.map .node').forEach(function (node, i) {
       node.classList.toggle('active', i === n - 1);
       node.classList.toggle('done', i < n - 1);
     });
+    setTimeout(sizeAvatar, 50); // after the stage's sheet has laid out
   }
   // completed nodes are clickable to go back and redo an earlier stage
   [1, 2, 3].forEach(function (n) {
@@ -396,10 +442,18 @@
     });
   });
 
+  // opening ambient: the astrology stage pours its waterfall
+  // (#hash effect preselects win, for dev)
+  if (!location.hash) setEffect(STAGE_FX[1]);
+
   /* ---- Compatibility reveal: ring + % flashed between stages ----
      Anna reacts to the score: high = love, low = sad, really low = scared. */
   function setMood(img) {
     var btn = document.querySelector('.moods button[data-img="' + img + '"]');
+    if (btn) btn.click();
+  }
+  function setEffect(fx) {
+    var btn = document.querySelector('.anims button[data-fx="' + fx + '"]');
     if (btn) btn.click();
   }
   function moodFor(pct) {
@@ -408,13 +462,22 @@
     if (pct >= 20) return 'sad';
     return 'scared';
   }
+  // reveal reactions: a big score floods the screen with hearts
+  function fxFor(pct) {
+    return pct >= 70 ? 'hearts' : null;
+  }
   var RING_C = 2 * Math.PI * 54; // circumference of the r=54 ring
   var revealing = false;
-  function playReveal(r, after, label) {
+  // react: optional {mood, fx} override for how Anna takes the number
+  function playReveal(r, after, label, verdict, react) {
     if (revealing) return;
     revealing = true;
     var reveal = $('reveal'), fill = $('ringFill'), pctEl = $('ringPct');
     reveal.querySelector('.ringLabel').textContent = label || 'cosmic compatibility';
+    // optional punchline under the ring (the age gate's "absolutely not");
+    // when present the flash lingers long enough to read it
+    var linger = verdict ? 2600 : 0;
+    $('ringVerdict').textContent = verdict || '';
     fill.style.strokeDasharray = RING_C;
     fill.style.strokeDashoffset = RING_C;
     pctEl.textContent = '0%';
@@ -428,12 +491,19 @@
       pctEl.textContent = val + '%';
       fill.style.strokeDashoffset = RING_C * (1 - val / 100);
       if (t < 1) requestAnimationFrame(tick);
-      else setMood(moodFor(r.percent)); // she reacts once the number lands
+      else setMood((react && react.mood) || moodFor(r.percent)); // she reacts once the number lands
     }
     requestAnimationFrame(tick);
     // swap the stage underneath the flash, then fade it out
-    setTimeout(function () { if (after) after(); }, 1500);
-    setTimeout(function () { reveal.classList.remove('show'); revealing = false; }, 2100);
+    setTimeout(function () { if (after) after(); }, 1500 + linger);
+    setTimeout(function () {
+      reveal.classList.remove('show');
+      revealing = false;
+      // reaction effect lands AFTER the stage switch set its ambient,
+      // so hearts (etc.) survive into the next stage
+      var fx = (react && react.fx) || fxFor(r.percent);
+      if (fx) setEffect(fx);
+    }, 2100 + linger);
   }
 
   /* ---- NEXT: validate, compute synastry, advance to the movie test ---- */
@@ -455,10 +525,12 @@
     }
     var h24 = (h12 % 12) + (pm ? 12 : 0);
     synastryResult = Synastry.compute({ y: y, mo: mo, d: d, h: h24, mi: mi, lat: selected.lat, lon: selected.lon, tz: selected.tz });
-    $('moreInfo').style.display = 'block';
+    // no chart report for minors — the ⓘ escape hatch stays hidden too
+    $('moreInfo').style.display = synastryResult.percent === 0 ? 'none' : 'block';
     if (synastryResult.percent === 0) {
-      // teenagers do not advance: reveal the 0, let her be scared, show the receipt
-      playReveal(synastryResult, function () { showResult(synastryResult); });
+      // teenagers do not advance: 0% ring + the punchline, then back to the
+      // form — no chart report for minors, no stage 2
+      playReveal(synastryResult, null, 'cosmic compatibility', synastryResult.verdict);
     } else {
       playReveal(synastryResult, function () { goStage(2); });
     }
@@ -510,7 +582,10 @@
     }
     tasteResult = withMovieTaste(synastryResult);
     // the reveal shows the movie test's OWN score, not the running blend
-    playReveal({ percent: moviePercent() }, function () { goStage(3); }, 'movie compatibility');
+    var mp = moviePercent();
+    // bad taste disgusts her + the screen catches fire
+    playReveal({ percent: mp }, function () { goStage(3); }, 'movie compatibility',
+      null, mp < 40 ? { mood: 'disgusted', fx: 'fire' } : null);
   });
 
   /* ---- Stage 3: looks match ----
@@ -521,6 +596,58 @@
      canvas math; the loading bar is pure theater. */
   var lmFile = $('lmFile'), lmDrop = $('lmDrop'), lmCapture = $('lmCapture');
   var lmImg = null, looksScore = null, looksResult = null;
+
+  /* ---- Real background removal: MediaPipe selfie segmentation (vendored in
+     assets/mediapipe/). Kicks off as soon as a photo lands, so the cutout is
+     usually ready before CAPTURE. lmCut = canvas of the person with a
+     transparent background; null = model unavailable, fall back to the oval. */
+  var lmCut = null, segmenter = null;
+
+  function getSegmenter() {
+    if (!segmenter && typeof SelfieSegmentation !== 'undefined') {
+      segmenter = new SelfieSegmentation({ locateFile: function (f) { return 'assets/mediapipe/' + f; } });
+      segmenter.setOptions({ modelSelection: 0 });
+    }
+    return segmenter;
+  }
+
+  function segmentPerson(img, done) {
+    var seg = getSegmenter();
+    if (!seg) { done(null); return; }
+    // cap the working size — full camera frames just slow the model down
+    var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    var k = Math.min(1, 720 / Math.max(iw, ih));
+    var w = Math.round(iw * k), h = Math.round(ih * k);
+    var src = document.createElement('canvas');
+    src.width = w; src.height = h;
+    src.getContext('2d').drawImage(img, 0, 0, w, h);
+    seg.onResults(function (res) {
+      try {
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var x = c.getContext('2d');
+        x.drawImage(res.segmentationMask, 0, 0, w, h);
+        x.globalCompositeOperation = 'source-in';
+        x.drawImage(src, 0, 0, w, h);
+        done(c);
+      } catch (e) { done(null); }
+    });
+    Promise.resolve().then(function () { return seg.send({ image: src }); })
+      .catch(function () { done(null); });
+  }
+
+  function startCutout(img) {
+    lmCut = null;
+    segmentPerson(img, function (c) {
+      if (img !== lmImg) return; // a newer photo replaced this one mid-flight
+      lmCut = c;
+      // if the polaroid is already up with the oval fallback, upgrade it live
+      if (c && looksScore && looksScore.stats && looksScore.stats.face &&
+          $('lmStage').classList.contains('show')) {
+        $('lmYouImg').src = faceOnWhite(lmImg, looksScore.stats.face);
+      }
+    });
+  }
   var boothStream = null, boothOn = false, boothTimer = null;
 
   function startBooth() {
@@ -575,6 +702,7 @@
       var img = new Image();
       img.onload = function () {
         lmImg = img;
+        startCutout(img);
         $('lmYouImg').src = url;
         stopBooth();
         runLooks();
@@ -592,6 +720,7 @@
     var img = new Image();
     img.onload = function () {
       lmImg = img;
+      startCutout(img);
       lmDrop.classList.add('hasPhoto');
       lmDrop.style.backgroundImage = 'url("' + url + '")';
       lmDrop.querySelector('b').textContent = 'hmm. okay. ready when you are';
@@ -617,26 +746,53 @@
   });
 
   function runLooks() {
-    looksScore = Looks.analyze(lmImg);
-    // white-background polaroid: same face-cutout tech as the stage-4 standee head
-    if (looksScore.stats && looksScore.stats.face) {
-      $('lmYouImg').src = faceOnWhite(lmImg, looksScore.stats.face);
+    // pixel pass always runs: it finds the face box for the polaroid cutout
+    // and the stage-4 standee, and doubles as the fallback judge
+    var local = Looks.analyze(lmImg);
+    if (local.stats && local.stats.face) {
+      $('lmYouImg').src = faceOnWhite(lmImg, local.stats.face);
+    }
+    // real judge: Claude vision (assets/looks-ai.js) when a key is set;
+    // any failure (no key, network, model declined) falls back to the pixels
+    var pending = Promise.resolve(local);
+    if (window.LooksAI) {
+      LooksAI.ensureKey();
+      if (LooksAI.ready()) {
+        pending = LooksAI.analyze(lmImg).then(function (ai) {
+          if (local.stats) ai.stats.face = local.stats.face;
+          return ai;
+        }).catch(function (e) {
+          console.warn('AI judge unavailable, using the pixel judge:', e);
+          return local;
+        });
+      }
     }
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
     var bar = $('lmBar'), msg = $('lmMsg'), i = 0;
+    var started = Date.now();
     msg.textContent = LM_MSGS[0];
     bar.style.width = Math.round(100 / LM_MSGS.length) + '%';
     var iv = setInterval(function () {
       i++;
       if (i < LM_MSGS.length) {
         msg.textContent = LM_MSGS[i];
-        bar.style.width = Math.round((i + 1) / LM_MSGS.length * 100) + '%';
+        bar.style.width = Math.round((i + 1) / LM_MSGS.length * 96) + '%';
       } else {
-        clearInterval(iv);
-        setTimeout(showLooksVerdict, 350);
+        // theater's done but the judge may still be thinking — hold here
+        msg.textContent = 'anna is deliberating…';
       }
     }, 620);
+    pending.then(function (r) {
+      looksScore = r;
+      // let the loading theater play through at least once before the verdict
+      var wait = Math.max(0, LM_MSGS.length * 620 + 100 - (Date.now() - started));
+      setTimeout(function () {
+        clearInterval(iv);
+        bar.style.width = '100%';
+        setTimeout(showLooksVerdict, 350);
+      }, wait);
+    });
   }
 
   function showLooksVerdict() {
@@ -690,9 +846,71 @@
     return ft + '′' + rem + '″';
   }
 
-  // JibJab-style head: cut an ellipse around the detected face and give it a
-  // white die-cut sticker border; everything outside the ellipse is transparent
+  // Head geometry straight from the segmentation mask's alpha channel — the
+  // skin-box from looks.js overshoots on red clothes / busy photos, so scale
+  // and position come from the actual silhouette instead. Returns head top,
+  // head (hair) width and center-x in lmCut pixels, or null.
+  function headMetrics(cut) {
+    var k = 96 / Math.max(cut.width, cut.height);
+    var w = Math.max(1, Math.round(cut.width * k)), h = Math.max(1, Math.round(cut.height * k));
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(cut, 0, 0, w, h);
+    var d = x.getImageData(0, 0, w, h).data;
+    var rows = [], top = -1, bot = -1;
+    for (var yy = 0; yy < h; yy++) {
+      var mn = 1e9, mx = -1;
+      for (var xx = 0; xx < w; xx++) {
+        if (d[(yy * w + xx) * 4 + 3] > 128) { if (xx < mn) mn = xx; if (xx > mx) mx = xx; }
+      }
+      rows.push(mx >= mn ? { mn: mn, mx: mx } : null);
+      if (rows[yy]) { if (top < 0) top = yy; bot = yy; }
+    }
+    if (top < 0 || bot - top < 8) return null;
+    // walk down from the hair: head width changes gently row to row, then
+    // shoulders arrive as a sudden widening vs the recent rows — that jump is
+    // where the head ends (poses with raised arms would fool a fixed % band)
+    var widths = [], cxs = [], shoulder = -1;
+    for (var y2 = top + Math.max(1, Math.round((bot - top) * 0.02)); y2 <= bot; y2++) {
+      var r = rows[y2];
+      if (!r) continue;
+      var wd = r.mx - r.mn + 1;
+      if (widths.length >= 8) {
+        var recent = widths.slice(-10).sort(function (a, b) { return a - b; });
+        if (wd > recent[Math.floor(recent.length / 2)] * 1.45) { shoulder = y2; break; }
+      }
+      widths.push(wd);
+      cxs.push((r.mx + r.mn) / 2);
+      if (y2 - top > (bot - top) * 0.55) { shoulder = y2; break; } // no jump found: assume tight headshot
+    }
+    if (shoulder < 0) shoulder = bot;
+    if (!widths.length) return null;
+    widths.sort(function (a, b) { return a - b; });
+    return {
+      top: top / k,
+      width: widths[Math.floor(widths.length * 0.85)] / k, // near-widest = hair
+      headH: (shoulder - top) / k,
+      cx: cxs.reduce(function (a, b) { return a + b; }, 0) / cxs.length / k
+    };
+  }
+
+  // JibJab-style head for the standee: with a segmentation cutout it's the
+  // real head silhouette (CSS crops it round); otherwise fall back to the
+  // ellipse cut around the detected face box
   function faceSticker(img, box) {
+    var m = lmCut && headMetrics(lmCut);
+    if (m) {
+      // just the head: hair top to the shoulder jump, nothing below
+      var cropW = m.width * 1.15;
+      var cropH = (m.headH || m.width * 1.3) * 1.06;
+      var S = 300, SH = Math.max(120, Math.round(S * cropH / cropW));
+      var c2 = document.createElement('canvas');
+      c2.width = S; c2.height = SH;
+      c2.getContext('2d').drawImage(lmCut,
+        m.cx - cropW / 2, m.top - cropH * 0.03, cropW, cropH, 0, 0, S, SH);
+      return c2.toDataURL('image/png');
+    }
     var bw = (box.x1 - box.x0) * img.naturalWidth, bh = (box.y1 - box.y0) * img.naturalHeight;
     var cx = (box.x0 + box.x1) / 2 * img.naturalWidth, cy = (box.y0 + box.y1) / 2 * img.naturalHeight;
     var rx = bw * 0.72, ry = bh * 0.82; // a hair wider/taller than the box for hair + chin
@@ -712,8 +930,10 @@
   }
   var stickerUrl = null, stickerFor = '';
 
-  // same cutout tech, composed onto a white canvas: the stage-3 polaroid gets
-  // a clean white background like Anna's studio shot
+  // composed onto a white canvas: the stage-3 polaroid gets a clean white
+  // background like Anna's studio shot. With a segmentation cutout (lmCut)
+  // it's the person's real silhouette — hair and all; without one it falls
+  // back to the old oval crop.
   function faceOnWhite(img, box) {
     var W = 600, H = 800;
     var c = document.createElement('canvas');
@@ -723,6 +943,17 @@
     ctx.fillRect(0, 0, W, H);
     var bw = (box.x1 - box.x0) * img.naturalWidth, bh = (box.y1 - box.y0) * img.naturalHeight;
     var cx = (box.x0 + box.x1) / 2 * img.naturalWidth, cy = (box.y0 + box.y1) / 2 * img.naturalHeight;
+    var m = lmCut && headMetrics(lmCut);
+    if (m) {
+      // face-to-face with Anna: her studio portrait has hair-top ~6% from
+      // the top and a head about half the frame wide, so scale the cutout
+      // until this head matches that framing
+      var scale = (W * 0.52) / m.width;
+      ctx.drawImage(lmCut,
+        W / 2 - m.cx * scale, H * 0.06 - m.top * scale,
+        lmCut.width * scale, lmCut.height * scale);
+      return c.toDataURL('image/jpeg', 0.92);
+    }
     var rx = bw * 0.85, ry = bh * 1.05;
     var eRx = W * 0.36, eRy = eRx * (ry / rx), ex = W / 2, ey = H * 0.44;
     ctx.save();
@@ -756,14 +987,51 @@
   function syncStandees() {
     var floor = $('hcFloor');
     if (!floor.clientHeight) return;
-    var ppi = floor.clientHeight / 86; // pixels per inch, with headroom over the 84in max
+    // FIXED scale: Anna's standee never changes size — only YOURS grows or
+    // shrinks, so it's unambiguous whose height the slider is setting.
+    // Scaled to 80in so the scene fills the floor; the rare 6'8"+ standee
+    // visually caps at the ceiling while the label keeps the true number.
+    var ppi = floor.clientHeight * 0.97 / 80;
+    var visIn = Math.min(hcIn, 80);
     var you = $('hcYou'), anna = $('hcAnnaStd');
-    you.style.height = (hcIn * ppi) + 'px';
-    you.style.width = (hcIn * ppi * 0.34) + 'px';
+    you.style.height = (visIn * ppi) + 'px';
+    you.style.width = (visIn * ppi * 0.34) + 'px';
     anna.style.height = (ANNA_IN * ppi) + 'px';
     anna.style.width = anna.classList.contains('full') ? 'auto' : (ANNA_IN * ppi * 0.34) + 'px';
-    $('hcAnnaLine').style.bottom = (ANNA_IN * ppi - 3) + 'px'; // -3: sit the dashes on her head, not above it
-    $('hcReadout').textContent = fmtHeight(hcIn);
+    // the full-body PNG has transparent padding around Anna, so height:100%
+    // renders her short of her own dashed line — stretch the img so her
+    // OPAQUE pixels (hair to shoes) span exactly her 62 inches
+    if (anna.classList.contains('full') && annaFullImg && annaTrim) {
+      var tf = annaTrim.bot - annaTrim.top;
+      var ih = ANNA_IN * ppi / tf;
+      var iw = ih * annaFullImg.naturalWidth / annaFullImg.naturalHeight;
+      anna.style.width = iw + 'px';
+      annaFullImg.style.height = ih + 'px';
+      annaFullImg.style.width = 'auto';
+      annaFullImg.style.position = 'absolute';
+      annaFullImg.style.left = '50%';
+      annaFullImg.style.transform = 'translateX(-50%)';
+      annaFullImg.style.bottom = (-(1 - annaTrim.bot) * ih) + 'px';
+    }
+    // Anna reacts to the comparison: shorter than her -> laughing and pointing,
+    // 6'5"+ giant looming -> scared, otherwise neutral
+    if (annaFullImg) {
+      var want = (annaLaughOK && hcIn < ANNA_IN) ? 'assets/anna-fullbody-laughing.png'
+        : (annaScaredOK && hcIn >= ANNA_SCARED_AT) ? 'assets/anna-fullbody-scared.png'
+        : 'assets/anna-fullbody.png';
+      if (annaFullImg.getAttribute('src') !== want) annaFullImg.src = want;
+    }
+    // pin the dashed line to Anna's actual rendered head (her standee box top
+    // == her opaque hair top) — computing it from hcFloor's bottom drifts,
+    // since the standees' feet don't sit exactly on hcFloor's bottom edge
+    var lineEl = $('hcAnnaLine');
+    lineEl.style.bottom = 'auto';
+    lineEl.style.top = (anna.getBoundingClientRect().top - floor.getBoundingClientRect().top + 1) + 'px';
+    // your own dashed line rides the top of your standee, label on the left
+    var youLine = $('hcYouLine');
+    youLine.style.bottom = 'auto';
+    youLine.style.top = (you.getBoundingClientRect().top - floor.getBoundingClientRect().top + 1) + 'px';
+    $('hcYouLabel').textContent = 'you · ' + fmtHeight(hcIn);
     var diff = +(hcIn - ANNA_IN).toFixed(1);
     $('hcLine').textContent = diff === 0 ? 'exactly anna’s height'
       : Math.abs(diff) + '″ ' + (diff > 0 ? 'taller' : 'shorter') + ' than anna';
@@ -772,9 +1040,10 @@
       yh.textContent = '';
       var box = (looksScore && looksScore.stats && looksScore.stats.face) ||
         { x0: .3, x1: .7, y0: .12, y1: .5 }; // no face box? assume a centered head
-      if (stickerFor !== lmImg.src) {
+      var stickerKey = lmImg.src + (lmCut ? '#cut' : '');
+      if (stickerFor !== stickerKey) {
         stickerUrl = faceSticker(lmImg, box);
-        stickerFor = lmImg.src;
+        stickerFor = stickerKey;
       }
       yh.classList.add('sticker');
       yh.style.backgroundImage = 'url("' + stickerUrl + '")';
@@ -787,17 +1056,52 @@
 
   // if a real full-body Anna cutout exists (assets/anna-fullbody.png, generated
   // separately), use it instead of the cardboard silhouette
+  var annaFullImg = null, annaTrim = null, annaScaredOK = false, annaLaughOK = false;
+  var ANNA_SCARED_AT = 77; // 6'5"
+
+  // top/bottom of the opaque pixels as fractions of image height (PNG cutouts
+  // ship with transparent margins that would otherwise skew the height math)
+  function alphaBounds(img) {
+    try {
+      var k = 64 / img.naturalHeight;
+      var w = Math.max(1, Math.round(img.naturalWidth * k)), h = 64;
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      var x = c.getContext('2d', { willReadFrequently: true });
+      x.drawImage(img, 0, 0, w, h);
+      var d = x.getImageData(0, 0, w, h).data;
+      var top = -1, bot = -1;
+      for (var yy = 0; yy < h; yy++) {
+        for (var xx = 0; xx < w; xx++) {
+          if (d[(yy * w + xx) * 4 + 3] > 16) { if (top < 0) top = yy; bot = yy; break; }
+        }
+      }
+      return top >= 0 ? { top: top / h, bot: (bot + 1) / h } : null;
+    } catch (e) { return null; }
+  }
+
   (function () {
     var img = new Image();
-    img.onload = function () {
+    img.onload = function () { // re-fires when reaction variants swap src
+      annaFullImg = img;
+      annaTrim = alphaBounds(img);
       var std = $('hcAnnaStd');
       std.classList.add('full');
-      std.innerHTML = '';
-      img.alt = 'anna';
-      std.appendChild(img);
+      if (!img.parentNode) {
+        std.innerHTML = '';
+        img.alt = 'anna';
+        std.appendChild(img);
+      }
       if (document.body.classList.contains('s4')) syncStandees();
     };
     img.src = 'assets/anna-fullbody.png';
+    // the reaction variants are optional; only swap to one once it's known to exist
+    var scared = new Image();
+    scared.onload = function () { annaScaredOK = true; };
+    scared.src = 'assets/anna-fullbody-scared.png';
+    var laugh = new Image();
+    laugh.onload = function () { annaLaughOK = true; };
+    laugh.src = 'assets/anna-fullbody-laughing.png';
   })();
 
   $('hcSlider').addEventListener('input', function () {
@@ -808,18 +1112,27 @@
     if (document.body.classList.contains('s4')) syncStandees();
   });
 
-  /* Anna's height preference: she's 5'2" but wants 5'9"-6'3", sweet spot
-     5'11"-6'0"; 5'7"-5'9" is tolerated, under 5'7" scores badly, and at or
-     below her own height is fatal. */
+  /* Anna's height preference: she's 5'2", prefers 5'8"-6'3" with a hard
+     minimum of 5'7" (below that: incompatible). Peak zone is 5'10"-6'2"
+     and 6'0" on the nose is the single most compatible height. Scary-tall
+     kicks in at 6'5" and gets worse from 6'7" up. */
   function heightFlag(inches) {
     var v = fmtHeight(inches);
-    if (inches <= ANNA_IN) return { text: v + ' — shorter than Anna herself. she wears heels. constantly.', pts: -24, good: false };
-    if (inches < 67) return { text: v + ' — taller than her, sure, but under the 5′7″ line', pts: -Math.min(18, Math.round((67 - inches) * 3)), good: false };
-    if (inches < 69) return { text: v + ' — 5′7″-something. Anna is politely unimpressed', pts: 2, good: true };
-    if (inches >= 71 && inches <= 72) return { text: v + ' — the sweet spot. Anna already saved your number', pts: 12, good: true };
-    if (inches <= 75) return { text: v + ' — right in Anna’s preferred range (5′9″–6′3″)', pts: 8, good: true };
-    var pts = Math.max(-6, 8 - Math.round((inches - 75) * 2));
-    return { text: v + ' — over 6′3″. Anna would need a step ladder, which is… fine?', pts: pts, good: pts >= 0 };
+    if (inches <= ANNA_IN) return { text: v + ' — shorter than Anna herself. she wears heels. constantly.', pts: -26, good: false };
+    if (inches < 67) return { text: v + ' — below Anna’s hard minimum of 5′7″. incompatible.', pts: -20, good: false };
+    if (inches < 68) return { text: v + ' — scraped past the 5′7″ minimum. Anna noticed the scraping.', pts: 1, good: true };
+    if (inches < 70) return { text: v + ' — inside Anna’s range. respectable.', pts: 6, good: true };
+    if (inches >= 71.5 && inches <= 72.5) return { text: v + ' — six feet. the most compatible height in existence. Anna already saved your number', pts: 14, good: true };
+    if (inches < 75) return { text: v + ' — peak zone (5′10″–6′2″). Anna is very much paying attention', pts: 12, good: true };
+    if (inches < 76) return { text: v + ' — 6′3″, the very top of Anna’s range. made it. barely.', pts: 8, good: true };
+    if (inches < 77) return { text: v + ' — 6′4″ is pushing it, but Anna will allow it', pts: 2, good: true };
+    if (inches < 79) return { text: v + ' — 6′5″+. entering scary-tall territory. Anna is uneasy', pts: -8, good: false };
+    return { text: v + ' — 6′7″ and up is genuinely scary tall. Anna has questions (from down here)', pts: -16, good: false };
+  }
+
+  // the height test's own standalone score (what the stage-4 reveal shows)
+  function heightPercent() {
+    return Math.max(2, Math.min(99, 50 + Math.round(heightFlag(hcIn).pts * 3.4)));
   }
 
   var heightResult = null;
@@ -836,32 +1149,110 @@
     };
   }
 
-  // stage 4 NEXT: fold the height preference in; stage 5 doesn't exist yet,
-  // so the adjusted reveal is the end of the road for now
+  // stage 4 NEXT: fold the height preference in, reveal the height test's
+  // OWN score, then hand everything to the final verdict screen
+  var heightDone = false;
   $('nextBtn4').addEventListener('click', function () {
     var base = looksResult || tasteResult || synastryResult;
     if (!base) return;
     heightResult = withHeight(base);
-    playReveal(heightResult);
+    heightDone = true;
+    playReveal({ percent: heightPercent() }, function () {
+      goStage(5);
+      FinalScreen.show({
+        astro: synastryResult ? synastryResult.percent : null,
+        movie: moviePercent(),
+        looks: looksScore ? looksScore.score : null,
+        height: heightPercent()
+      });
+    }, 'height compatibility');
   });
 
-  // temporary escape hatch to the full synastry report
+  // ⓘ more info: the report for the test you most recently finished —
+  // synastry while on the movie test, movie taste while on looks match,
+  // looks while on the height check, height once its NEXT has been clicked.
   $('moreInfo').addEventListener('click', function () {
-    var r = heightResult || looksResult || tasteResult || synastryResult;
-    if (r) showResult(r);
+    if (curStage >= 4 && heightDone) showHeightReport();
+    else if (curStage >= 4 && looksScore) showLooksReport();
+    else if (curStage === 3 && synastryResult) showTasteReport();
+    else if (synastryResult) showResult(synastryResult);
   });
+
+  // shared modal shell; each report fills its own fields
+  function openModal(o) {
+    document.querySelector('#overlay .modal h2').textContent = o.title;
+    $('mPct').textContent = o.pct;
+    $('mVerdict').textContent = o.verdict;
+    $('mBig3').innerHTML = o.big3;
+    $('mGreen').innerHTML = o.green.map(function (f) { return '<li>' + heartSVG(false) + ' ' + f.text + ' <b>(+' + f.pts + ')</b></li>'; }).join('') ||
+      '<li>' + o.noGreen + '</li>';
+    $('mRed').innerHTML = o.red.map(function (f) { return '<li>' + heartSVG(true) + ' ' + f.text + ' <b>(' + f.pts + ')</b></li>'; }).join('') ||
+      '<li>' + o.noRed + '</li>';
+    $('mFine').textContent = o.fine;
+    $('overlay').style.display = 'flex';
+  }
 
   function showResult(r) {
-    $('mPct').textContent = r.percent + '%';
-    $('mVerdict').textContent = r.verdict;
-    $('mBig3').innerHTML = '<b>you:</b> ' + r.you.sun + ' Sun · ' + r.you.moon + ' Moon · ' + r.you.rising + ' rising' +
-      '<br><b>anna:</b> ' + r.anna.sun + ' Sun · ' + r.anna.moon + ' Moon · ' + r.anna.rising + ' rising';
-    $('mGreen').innerHTML = r.green.map(function (f) { return '<li>' + heartSVG(false) + ' ' + f.text + ' <b>(+' + f.pts + ')</b></li>'; }).join('') ||
-      '<li>…the stars found no green flags. oof.</li>';
-    $('mRed').innerHTML = r.red.map(function (f) { return '<li>' + heartSVG(true) + ' ' + f.text + ' <b>(' + f.pts + ')</b></li>'; }).join('') ||
-      '<li>no red flags?? suspicious but okay.</li>';
-    $('mFine').textContent = 'full-chart synastry · ' + r.aspectCount + ' cross-aspects · 10 planets + rising · tropical zodiac';
-    $('overlay').style.display = 'flex';
+    openModal({
+      title: 'COSMIC COMPATIBILITY',
+      pct: r.percent + '%',
+      verdict: r.verdict,
+      big3: '<b>you:</b> ' + r.you.sun + ' Sun · ' + r.you.moon + ' Moon · ' + r.you.rising + ' rising' +
+        '<br><b>anna:</b> ' + r.anna.sun + ' Sun · ' + r.anna.moon + ' Moon · ' + r.anna.rising + ' rising',
+      green: r.green,
+      red: r.red,
+      noGreen: '…the stars found no green flags. oof.',
+      noRed: 'no red flags?? suspicious but okay.',
+      fine: 'full-chart synastry · ' + r.aspectCount + ' cross-aspects · 10 planets + rising · tropical zodiac'
+    });
+  }
+
+  function showTasteReport() {
+    var m = movieMod(), pct = moviePercent();
+    openModal({
+      title: 'MOVIE TASTE REPORT',
+      pct: pct + '%',
+      verdict: Synastry.verdictFor(pct),
+      big3: '<b>shelf:</b> ' + seenCount() + ' of 12 seen<br><b>favorites judged:</b> ' +
+        (favs.length ? favs.map(function (f) { return '“' + f.title + '”'; }).join(', ') : 'none — the shelf spoke for itself'),
+      green: m.flags.filter(function (f) { return f.good; }),
+      red: m.flags.filter(function (f) { return !f.good; }),
+      noGreen: 'not one point of taste credit. Anna is worried about you.',
+      noRed: 'zero taste violations. the shelf approves.',
+      fine: 'movie test · shelf watch-count + judged favorites · folded into the running compatibility'
+    });
+  }
+
+  function showLooksReport() {
+    openModal({
+      title: 'LOOKS MATCH REPORT',
+      pct: looksScore.score + '%',
+      verdict: looksScore.verdictLine,
+      big3: '<b>result:</b> ' + (looksScore.matched ? 'LOOKS MATCHED' : 'NOT LOOKS MATCHED') +
+        '<br><b>bar to clear:</b> ' + Looks.MATCH_AT + '% — Anna grades on her own curve',
+      green: looksScore.flags.filter(function (f) { return f.good; }),
+      red: looksScore.flags.filter(function (f) { return !f.good; }),
+      noGreen: 'the camera found nothing to compliment. brutal.',
+      noRed: 'no complaints from Anna. rare.',
+      fine: looksScore.stats && looksScore.stats.ai
+        ? 'looks match · judged by Claude vision (' + looksScore.stats.model + ') · Anna outsourced her eyes'
+        : 'looks match · analyzed entirely in your browser — the photo never leaves your device'
+    });
+  }
+
+  function showHeightReport() {
+    var f = heightFlag(hcIn), pct = heightPercent();
+    openModal({
+      title: 'HEIGHT COMPATIBILITY',
+      pct: pct + '%',
+      verdict: Synastry.verdictFor(pct),
+      big3: '<b>you:</b> ' + fmtHeight(hcIn) + '<br><b>anna:</b> ' + fmtHeight(ANNA_IN) + ' (heels not included)',
+      green: f.good ? [f] : [],
+      red: f.good ? [] : [f],
+      noGreen: 'the tape measure had nothing nice to say.',
+      noRed: 'no height complaints. Anna is looking up. literally.',
+      fine: 'height check · Anna’s range 5′8″–6′3″ · hard minimum 5′7″ · peak 6′0″ · scary-tall from 6′5″'
+    });
   }
 
   $('closeM').addEventListener('click', function () { $('overlay').style.display = 'none'; });

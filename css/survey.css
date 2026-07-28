@@ -315,6 +315,11 @@
 
 .betaPanel.closed .betaBody { display: none; }
 
+/* pre-paint collapse (html.bcA/.bcM set by the inline head script from
+   localStorage; survey.js removes them once it applies the real state) */
+html.bcA #animsPanel .betaBody,
+html.bcM #moodsPanel .betaBody { display: none; }
+
 .betaBody { margin-top: 6px; }
 
 .betaBody button {
@@ -648,9 +653,14 @@ body.s2 .avatar {
 }
 
 .shelfHead span {
-  color: var(--pink-soft);
+  color: #fff;
   font-size: 14px;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 10px rgba(0, 0, 0, .3);
 }
+
+/* mobile-only call to action above the film strip (mobile.css shows it) */
+.shelfCta { display: none; }
 
 /* Each row is 6 cases standing on a chrome plank (same finish as the route rail) */
 /* On desktop the .shelf wrapper is layout-invisible (rows stay direct flex
@@ -857,6 +867,20 @@ body.s2 .avatar {
   text-transform: uppercase;
   color: #fff;
 }
+
+/* punchline under the ring (age gate): reads while the flash lingers */
+.ringVerdict {
+  max-width: min(86vw, 480px);
+  margin-top: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 17px;
+  line-height: 1.45;
+  color: #fff;
+  text-shadow: 0 2px 0 var(--pink-dark), 0 3px 8px rgba(0, 0, 0, .45);
+}
+
+.ringVerdict:empty { display: none; }
 
 /* ---- Tiny "more info" escape hatch for the old modal (temporary) ---- */
 #moreInfo {
@@ -1282,25 +1306,36 @@ body.s3 .avatar {
   letter-spacing: 1px;
 }
 
-/* Verdict stamp */
+/* Verdict stamp: dark glass pill so it reads over any photo */
 .lmVerdict {
   display: none;
   text-align: center;
-  padding: 0 0 8px;
   font-size: 44px;
   font-weight: bold;
   letter-spacing: 3px;
   animation: stampIn .35s cubic-bezier(.3, 1.6, .5, 1) backwards;
 }
 
-.lmVerdict.show { display: block; }
+.lmVerdict.show {
+  display: inline-block;
+  align-self: center;
+  margin-bottom: 8px;
+  padding: 12px 30px 16px;
+  background: rgba(50, 6, 32, .78);
+  border: 3px solid rgba(255, 255, 255, .3);
+  border-radius: 18px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
 
 .lmVerdict.yes {
   color: #fff;
+  box-shadow: 0 0 26px rgba(140, 255, 170, .4);
 }
 
 .lmVerdict.no {
   color: #fff;
+  box-shadow: 0 0 26px rgba(255, 80, 120, .4);
 }
 
 .lmVerdict small {
@@ -1440,7 +1475,6 @@ body.s4 .avatar { display: none; }
 .hcStd {
   position: relative;
   filter: drop-shadow(6px 8px 0 rgba(60, 20, 45, .3));
-  transition: height .08s linear;
 }
 
 .hcStd u { position: absolute; display: block; text-decoration: none; }
@@ -1522,24 +1556,32 @@ body.s4 .avatar { display: none; }
   font-weight: bold;
   font-style: normal;
   letter-spacing: 1px;
-  color: #fff;
+  color: var(--pink-heading);
 }
 
-/* big live readout on the right */
-.hcReadout {
+/* YOUR dashed measuring line — mirrors Anna's, label on the left */
+.hcYouLine {
   position: absolute;
-  right: 2%;
-  top: 32%;
-  font-size: min(9vw, 110px);
-  font-weight: bold;
-  font-family: var(--font-round);
-  color: #fff;
+  left: 0;
+  right: 0;
+  border-top: 3px dashed rgba(255, 255, 255, .95);
   pointer-events: none;
+}
+
+.hcYouLine em {
+  position: absolute;
+  left: 0;
+  top: -26px;
+  font-size: 14px;
+  font-weight: bold;
+  font-style: normal;
+  letter-spacing: 1px;
+  color: var(--pink-heading);
 }
 
 /* the measuring tool: chrome ruler track with tick marks + candy notch thumb */
 .hcTool {
-  padding: 26px 10% 10px;
+  padding: 12px 8% 8px;
 }
 
 #hcSlider {
@@ -1642,3 +1684,12 @@ body.s4 .avatar { display: none; }
   width: 64px;
   height: 64px;
 }
+
+/* ---- Production: beta panels are dev-only tools (js adds body.prod off-localhost).
+   Buttons stay in the DOM so stage/reveal reactions can still drive them. ---- */
+body.prod .betas { display: none !important; }
+
+/* stage 4 sits on the palest part of the sky — solid DS colors, no shadows */
+body.s4 .shelfHead b { color: var(--pink); }
+body.s4 .shelfHead span { color: var(--pink-heading); }
+body.s4 .shelfFoot .seen { color: var(--pink-heading); }

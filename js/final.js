@@ -36,8 +36,8 @@
         ? '<div class="fAction yes"><b>SHOOT YOUR SHOT 💘</b>' +
           '<span>Anna has pre-approved this holla</span>' +
           '<div class="fLinks">' +
-          '<a class="next fBtn" target="_blank" rel="noopener" href="https://instagram.com/hard_boiled_babe">📸 instagram</a>' +
-          '<a class="next fBtn" target="_blank" rel="noopener" href="https://x.com/hard_boiled_babe">🐦 twitter</a>' +
+          '<a class="next fBtn" target="_blank" rel="noopener" href="https://www.instagram.com/hard_boiledbabe/">📸 instagram</a>' +
+          '<a class="next fBtn" target="_blank" rel="noopener" href="https://x.com/hard_boiledbabe">🐦 twitter</a>' +
           '</div></div>'
         : '<div class="fAction no"><b>unfortunately, you are not eligible to holla at anna at this time</b>' +
           '<span>here are some next best things:</span>' +
