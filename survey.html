@@ -52,7 +52,7 @@
       <img class="steam sR" src="assets/steam-right.png" alt="">
     </div>
 
-    <form class="card">
+    <form class="card pinkTextBox">
       <b>BIRTH DATE</b>
       <div class="row">
         <select id="bMonth"></select>
@@ -93,7 +93,7 @@
         <div class="shelfRow" id="shelfRow2"></div>
       </div>
       <!-- shown by NEXT when they've seen 3 or fewer: Anna demands favorites instead -->
-      <div id="faves">
+      <div id="faves" class="pinkTextBox">
         <b>seen that few?? okay… type your favorite movies so Anna can judge those instead <i>(minimum 2)</i></b>
         <div class="locwrap">
           <input id="favInput" placeholder="start typing a movie" autocomplete="off">
@@ -135,14 +135,14 @@
             </div>
           </div>
         </div>
-        <button type="button" class="next lmCapture" id="lmCapture" disabled>NEXT</button>
+        <button type="button" class="next lmCapture" id="lmCapture" hidden disabled>NEXT</button>
       </div>
 
       <div class="lmStage" id="lmStage">
         <div class="lmVerdict" id="lmVerdict"></div>
         <div class="lmPair">
           <figure class="pol you"><img id="lmYouImg" alt="you"><figcaption>you</figcaption></figure>
-          <div class="lmHeart" id="lmHeart">💘</div>
+          <div class="lmHeart" id="lmHeart" aria-hidden="true"></div>
           <figure class="pol annaPol"><img src="assets/portrait.png" alt="anna"><figcaption>anna</figcaption></figure>
         </div>
         <div class="lmLoad" id="lmLoad">
@@ -193,7 +193,7 @@
     <section id="stage5" aria-live="polite"></section>
 
     <div class="betas">
-      <div class="anims betaPanel" id="animsPanel">
+      <div class="anims betaPanel pinkTextBox" id="animsPanel">
         <div class="betaHead">ANIMATION BETA <button type="button" class="betaToggle" aria-label="hide panel">–</button></div>
         <div class="betaBody">
           <button type="button" class="on" data-fx="none">none</button>
@@ -204,7 +204,7 @@
           <button type="button" data-fx="shooting">🌠 shooting stars</button>
         </div>
       </div>
-      <div class="moods betaPanel" id="moodsPanel">
+      <div class="moods betaPanel pinkTextBox" id="moodsPanel">
         <div class="betaHead">EMOTION BETA <button type="button" class="betaToggle" aria-label="hide panel">–</button></div>
         <div class="betaBody">
           <button type="button" class="on" data-img="portrait-cutout">neutral</button>
@@ -240,14 +240,11 @@
 
   <!-- Compatibility result modal -->
   <div id="overlay">
-    <div class="modal">
+    <div class="modal pinkTextBox">
       <h2>COSMIC COMPATIBILITY</h2>
       <div class="pct" id="mPct"></div>
-      <p class="verdict" id="mVerdict"></p>
-      <div class="big3" id="mBig3"></div>
       <h3>💖 GREEN FLAGS</h3><ul id="mGreen"></ul>
       <h3>💔 RED FLAGS</h3><ul id="mRed"></ul>
-      <p class="fine" id="mFine"></p>
       <button class="closeM" id="closeM">close</button>
     </div>
   </div>

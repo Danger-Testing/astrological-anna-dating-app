@@ -267,7 +267,14 @@
      (iTunes Search API was tried first but Apple emptied its movie catalog.) */
   var favs = [];
   var favesBox = $('faves'), favInput = $('favInput'), favList = $('favList'), favChips = $('favChips');
+  var nextMovieBtn = $('nextBtn2');
   var favDeb = null;
+
+  function syncFavRequirement() {
+    var waiting = favesBox.classList.contains('show') && favs.length < 2;
+    nextMovieBtn.disabled = waiting;
+    nextMovieBtn.classList.toggle('awaitingFaves', waiting);
+  }
 
   function wikiSearch(q, cb) {
     fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' +
@@ -305,6 +312,7 @@
       chip.appendChild(rm);
       favChips.appendChild(chip);
     });
+    syncFavRequirement();
   }
 
   function addFav(title, art) {
@@ -584,11 +592,13 @@
   // stage 2 NEXT: seen ≤3 of the shelf? then Anna demands ≥2 favorites first.
   // Movie taste folds into the score, then the reveal hands off to stage 3.
   var tasteResult = null;
-  $('nextBtn2').addEventListener('click', function () {
+  nextMovieBtn.addEventListener('click', function () {
     $('movieInstruction').hidden = true;
     if (!synastryResult) return;
     if (seenCount() <= 3 && favs.length < 2) {
+      $('stage2').classList.add('needsFaves');
       favesBox.classList.add('show');
+      syncFavRequirement();
       favInput.focus();
       return;
     }
@@ -674,10 +684,13 @@
         boothOn = true;
         $('boothVid').srcObject = stream;
         $('booth').classList.add('live');
+        lmCapture.hidden = false;
+        lmCapture.textContent = 'TAKE PHOTO';
         lmCapture.disabled = false;
       })
       .catch(function () {
         $('lmPrompt').textContent = 'camera said no 💔 upload one instead';
+        lmCapture.hidden = true;
       });
   }
   function stopBooth() {
@@ -737,8 +750,10 @@
       lmDrop.style.backgroundImage = 'url("' + url + '")';
       $('lmInstruction').hidden = true;
       $('lmPrompt').textContent = 'hmm. okay. ready when you are';
-      $('lmPrompt').classList.add('ready');
+      $('lmPrompt').classList.add('ready', 'pinkTextBox');
       $('lmMedia').insertBefore($('lmPrompt'), $('booth'));
+      lmCapture.hidden = false;
+      lmCapture.textContent = 'NEXT';
       lmCapture.disabled = false;
       $('lmYouImg').src = url;
     };
@@ -781,6 +796,10 @@
         });
       }
     }
+    var pairHeart = $('lmHeart');
+    pairHeart.className = 'lmHeart';
+    pairHeart.hidden = true;
+    pairHeart.innerHTML = '';
     $('stage3').classList.add('hasResult');
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
@@ -816,10 +835,28 @@
     v.className = 'lmVerdict show ' + (looksScore.matched ? 'yes' : 'no');
     v.innerHTML = '<span class="lmVerdictScore">' + looksScore.score + '/100</span>' +
       '<span class="lmVerdictStatus">' +
-      (looksScore.matched ? 'LOOKS MATCHED ' : 'NOT LOOKS MATCHED ') +
-      heartSVG(!looksScore.matched) + '</span>' +
+      (looksScore.matched ? 'LOOKS MATCHED' : 'LOOKS NOT MATCHED') + '</span>' +
       '<small>' + looksScore.verdictLine + '</small>';
-    $('lmHeart').innerHTML = heartSVG(!looksScore.matched);
+    var pairHeart = $('lmHeart');
+    if (looksScore.matched) {
+      pairHeart.hidden = true;
+      pairHeart.innerHTML = '';
+    } else {
+      pairHeart.innerHTML =
+        '<span class="lmHeartWhole">' + heartSVG(false) + '</span>' +
+        '<span class="lmHeartHalf lmHeartLeft">' + heartSVG(true) + '</span>' +
+        '<span class="lmHeartHalf lmHeartRight">' + heartSVG(true) + '</span>';
+      pairHeart.hidden = false;
+      pairHeart.classList.add('breaking');
+      var wholeHeart = pairHeart.querySelector('.lmHeartWhole');
+      setTimeout(function () {
+        if (wholeHeart && wholeHeart.isConnected && pairHeart.classList.contains('breaking')) {
+          wholeHeart.remove();
+        }
+      }, 2020);
+      var noneFxBtn = document.querySelector('.anims button[data-fx="none"]');
+      if (noneFxBtn) noneFxBtn.click();
+    }
     setMood(looksScore.matched ? 'smug' : 'angry'); // matched: she KNEW she was right about you
     if (looksScore.matched) {
       var heartsBtn = document.querySelector('.anims button[data-fx="hearts"]');
@@ -1198,13 +1235,10 @@
   function openModal(o) {
     document.querySelector('#overlay .modal h2').textContent = o.title;
     $('mPct').textContent = o.pct;
-    $('mVerdict').textContent = o.verdict;
-    $('mBig3').innerHTML = o.big3;
     $('mGreen').innerHTML = o.green.map(function (f) { return '<li>' + heartSVG(false) + ' ' + f.text + ' <b>(+' + f.pts + ')</b></li>'; }).join('') ||
       '<li>' + o.noGreen + '</li>';
     $('mRed').innerHTML = o.red.map(function (f) { return '<li>' + heartSVG(true) + ' ' + f.text + ' <b>(' + f.pts + ')</b></li>'; }).join('') ||
       '<li>' + o.noRed + '</li>';
-    $('mFine').textContent = o.fine;
     $('overlay').style.display = 'flex';
   }
 
@@ -1244,7 +1278,7 @@
       title: 'LOOKS MATCH REPORT',
       pct: looksScore.score + '%',
       verdict: looksScore.verdictLine,
-      big3: '<b>result:</b> ' + (looksScore.matched ? 'LOOKS MATCHED' : 'NOT LOOKS MATCHED') +
+      big3: '<b>result:</b> ' + (looksScore.matched ? 'LOOKS MATCHED' : 'LOOKS NOT MATCHED') +
         '<br><b>bar to clear:</b> ' + Looks.MATCH_AT + '% — Anna grades on her own curve',
       green: looksScore.flags.filter(function (f) { return f.good; }),
       red: looksScore.flags.filter(function (f) { return !f.good; }),

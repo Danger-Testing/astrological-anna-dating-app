@@ -5,6 +5,7 @@
   --route-progress: 0%;
   height: 160px;
   position: relative;
+  z-index: 100;
 }
 
 .route {
@@ -140,10 +141,6 @@
   top: 12%;
   width: 330px;
   padding: 20px;
-  background: var(--pink-card);
-  border: 3px solid var(--pink-card-border);
-  border-radius: 18px;
-  box-shadow: 7px 9px 0 rgba(120, 20, 80, .35);
 }
 
 .card b {
@@ -294,9 +291,6 @@
 
 .betaPanel {
   padding: 12px;
-  background: var(--pink-soft);
-  border: 3px solid var(--pink);
-  border-radius: 15px;
 }
 
 .betaHead {
@@ -355,6 +349,8 @@ html.bcM #moodsPanel .betaBody { display: none; }
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .2) 6%, #000 18%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .2) 6%, #000 18%, #000 100%);
 }
 
 #fx span {
@@ -540,10 +536,6 @@ html.bcM #moodsPanel .betaBody { display: none; }
   width: min(92vw, 540px);
   max-height: 86vh;
   overflow: auto;
-  background: var(--pink-card);
-  border: 4px solid var(--pink-card-border);
-  border-radius: 22px;
-  box-shadow: 10px 12px 0 rgba(120, 20, 80, .4);
   padding: 24px;
   color: var(--ink);
 }
@@ -562,23 +554,6 @@ html.bcM #moodsPanel .betaBody { display: none; }
   color: var(--pink);
 }
 
-.verdict {
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  margin: 4px 0 14px;
-}
-
-.big3 {
-  background: #fff;
-  border: 3px solid var(--pink-border);
-  border-radius: 12px;
-  padding: 10px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-
 .modal h3 {
   margin: 12px 0 4px;
   color: var(--pink-heading);
@@ -595,13 +570,6 @@ html.bcM #moodsPanel .betaBody { display: none; }
 .modal li {
   font-size: 14px;
   margin: 4px 0;
-}
-
-.fine {
-  font-size: 11px;
-  color: #a86e8d;
-  text-align: center;
-  margin: 14px 0 10px;
 }
 
 .closeM {
@@ -941,21 +909,28 @@ body.s2 .avatar {
    inline box would push below the fold. Grows upward as chips are added. */
 #faves {
   display: none;
-  position: fixed;
+  position: absolute;
   left: 50%;
   bottom: 96px;
   transform: translateX(-50%);
   z-index: 14;
-  width: min(92vw, 560px);
+  width: min(64vh, 480px);
   padding: 14px 16px;
-  background: var(--pink-card);
-  border: 3px solid var(--pink-card-border);
-  border-radius: 16px;
-  box-shadow: 5px 6px 0 rgba(120, 20, 80, .35);
   color: var(--pink-heading);
 }
 
 #faves.show { display: block; }
+
+#nextBtn2 {
+  transition: opacity .25s ease, filter .25s ease;
+}
+
+#nextBtn2.awaitingFaves {
+  opacity: .3;
+  filter: saturate(.45);
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 #faves > b {
   display: block;
@@ -1182,8 +1157,13 @@ body.s3 .avatar {
 /* CSS-drawn candy point-and-shoot: pink body, chrome lens, flash */
 .lmCam {
   position: relative;
+  flex: 0 0 84px;
   width: 122px;
+  min-width: 122px;
+  max-width: 122px;
   height: 84px;
+  min-height: 84px;
+  max-height: 84px;
   margin-top: 10px;
   margin-bottom: 8px;
   border-radius: 16px;
@@ -1300,8 +1280,6 @@ body.s3 .avatar {
 #lmPrompt.ready {
   flex: 0 0 auto;
   padding: 8px 14px;
-  border-radius: 10px;
-  background: rgba(255, 228, 240, .92);
   color: var(--pink-heading);
   font-size: 21px;
   font-weight: bold;
@@ -1312,6 +1290,8 @@ body.s3 .avatar {
 }
 
 .lmCapture { width: min(64vh, 480px); margin: 0; }
+
+.lmCapture[hidden] { display: none; }
 
 .lmCapture:disabled { opacity: .45; cursor: not-allowed; }
 
@@ -1370,14 +1350,91 @@ body.s3 .avatar {
   left: 50%;
   top: 50%;
   z-index: 2;
+  width: 64px;
+  height: 64px;
   transform: translate(-50%, -50%);
-  font-size: 52px;
-  animation: heartThrob 1s ease-in-out infinite;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .3));
 }
 
-@keyframes heartThrob {
-  50% { transform: translate(-50%, -50%) scale(1.25); }
+.lmHeartWhole,
+.lmHeartHalf {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-origin: center;
+}
+
+.lmHeart.breaking .lmHeartWhole {
+  animation:
+    heartPumpOnce .5s ease-in-out 4,
+    heartSwap .01s linear 2s forwards;
+}
+
+.lmHeartHalf {
+  visibility: hidden;
+}
+
+.lmHeartLeft {
+  clip-path: polygon(0 0, 53% 0, 42% 24%, 57% 48%, 43% 68%, 53% 100%, 0 100%);
+  animation: heartLeftDrop .8s cubic-bezier(.2, .8, .35, 1) 2s forwards;
+}
+
+.lmHeartRight {
+  clip-path: polygon(53% 0, 100% 0, 100% 100%, 53% 100%, 43% 68%, 57% 48%, 42% 24%);
+  animation: heartRightDrop .8s cubic-bezier(.2, .8, .35, 1) 2s forwards;
+}
+
+@keyframes heartPumpOnce {
+  0%, 100% { transform: scale(1); }
+  42% { transform: scale(1.24); }
+  70% { transform: scale(.96); }
+}
+
+@keyframes heartSwap {
+  to {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@keyframes heartLeftDrop {
+  0% {
+    visibility: visible;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  55% { transform: translate(-8px, 19px) rotate(-11deg); }
+  100% {
+    visibility: visible;
+    transform: translate(-13px, 34px) rotate(-19deg);
+  }
+}
+
+@keyframes heartRightDrop {
+  0% {
+    visibility: visible;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  55% { transform: translate(8px, 22px) rotate(11deg); }
+  100% {
+    visibility: visible;
+    transform: translate(13px, 38px) rotate(19deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmHeart.breaking .lmHeartWhole { visibility: hidden; animation: none; }
+
+  .lmHeartLeft {
+    visibility: visible;
+    animation: none;
+    transform: translate(-13px, 34px) rotate(-19deg);
+  }
+
+  .lmHeartRight {
+    visibility: visible;
+    animation: none;
+    transform: translate(13px, 38px) rotate(19deg);
+  }
 }
 
 /* Loading bar: candy stripes crawling while the "analysis" runs */

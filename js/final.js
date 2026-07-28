@@ -33,13 +33,13 @@
       '<div class="fAgg"><b>' + agg + '%</b><span>' + (window.Synastry && Synastry.verdictFor ? Synastry.verdictFor(agg) : '') + '</span></div>' +
       '<div class="fRings">' + parts.map(function (p) { return ring(p[0], p[1]); }).join('') + '</div>' +
       (eligible
-        ? '<div class="fAction yes"><b>SHOOT YOUR SHOT 💘</b>' +
+        ? '<div class="fAction yes pinkTextBox"><b>SHOOT YOUR SHOT 💘</b>' +
           '<span>Anna has pre-approved this holla</span>' +
           '<div class="fLinks">' +
           '<a class="next fBtn" target="_blank" rel="noopener" href="https://www.instagram.com/hard_boiledbabe/">📸 instagram</a>' +
           '<a class="next fBtn" target="_blank" rel="noopener" href="https://x.com/hard_boiledbabe">🐦 twitter</a>' +
           '</div></div>'
-        : '<div class="fAction no"><b>unfortunately, you are not eligible to holla at anna at this time</b>' +
+        : '<div class="fAction no pinkTextBox"><b>unfortunately, you are not eligible to holla at anna at this time</b>' +
           '<span>here are some next best things:</span>' +
           '<div class="fCelebs">' + CONSOLATION.map(function (c) {
             return '<a target="_blank" rel="noopener" href="' + c[1] + '">' + c[0] + '</a>';

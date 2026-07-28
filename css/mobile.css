@@ -68,8 +68,8 @@
   /* On the birth-details stage, lift Anna well above the bottom sheet so her
      face stays visible instead of sitting behind the form. */
   body:not(.s2):not(.s3):not(.s4):not(.s5) .avatar {
-    bottom: 14vh;
-    bottom: 14dvh;
+    bottom: 24vh;
+    bottom: 24dvh;
   }
 
   /* undo the desktop corner-shrink so she stays centered on s2/s3 */
@@ -77,6 +77,13 @@
   body.s3 .avatar {
     transform: translateX(-50%);
     z-index: 1;
+  }
+
+  /* Match the initial Looks upload portrait to stage one's lifted placement.
+     Keep the dedicated result composition unchanged after comparison. */
+  body.s3:has(#stage3:not(.hasResult)) .avatar {
+    bottom: 24vh;
+    bottom: 24dvh;
   }
 
   /* dev panels don't fit the phone screen — desktop-only */
@@ -101,8 +108,7 @@
     max-height: 56dvh;
     overflow-y: auto;
     z-index: 6;
-    border-radius: 22px 22px 0 0;
-    border-bottom: 0;
+    border-radius: var(--text-box-radius);
     box-shadow: 0 -8px 26px rgba(120, 20, 80, .4);
     padding: 12px 16px calc(10px + env(safe-area-inset-bottom));
   }
@@ -155,6 +161,8 @@
     border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 12px 0;
   }
 
+  #stage2.needsFaves .shelf { display: none; }
+
   .shelfRow {
     display: contents;
   }
@@ -177,6 +185,7 @@
   }
 
   #stage2 .shelfFoot {
+    margin-top: auto;
     padding-left: 18px;
     padding-right: 18px;
   }
@@ -198,6 +207,13 @@
 
   .booth,
   .lmDrop { width: min(460px, 54vh, calc(100vw - 32px)); }
+
+  .lmDrop {
+    aspect-ratio: 7 / 6;
+    padding-block: 28px;
+  }
+
+  .lmDrop.hasPhoto { padding-block: 0; }
 
   /* bottom-sheet vibes: booth + CAPTURE hug the bottom so Anna's face stays
      visible above while she watches you pick a photo */
