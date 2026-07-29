@@ -6,6 +6,8 @@ Started as a live voice-coded prototype in a Codex session on 2026-07-27, then m
 
 **Live at https://astrological-anna.vercel.app** — and for how the whole thing actually works (stage flow, the two looks judges, the reaction system, deployment and key handling), read [ARCHITECTURE.md](ARCHITECTURE.md).
 
+**Working on this repo as an agent?** Read [AGENT-NOTES.md](AGENT-NOTES.md) first — how Anna's expression images are generated with the local Codex CLI (including the flag gotcha that silently does nothing), the offline background-removal tools in `tools/`, the screenshot verification loop, and the git hygiene rules for when several agents edit this repo at once.
+
 ## How to run it
 
 No build step, no dependencies. It's a single static HTML page:
