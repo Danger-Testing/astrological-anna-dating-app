@@ -4,6 +4,8 @@ A dating app concept where **Anna**, an astrology-obsessed anime-styled host, wa
 
 Started as a live voice-coded prototype in a Codex session on 2026-07-27, then migrated here as a real project. See [PROTOTYPE-NOTES.md](PROTOTYPE-NOTES.md) for the original session write-up.
 
+**Live at https://astrological-anna.vercel.app** — and for how the whole thing actually works (stage flow, the two looks judges, the reaction system, deployment and key handling), read [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## How to run it
 
 No build step, no dependencies. It's a single static HTML page:
@@ -29,8 +31,13 @@ survey.html           The survey: level-map progress rail, Anna portrait, DSi-st
 stars.mp4             Looping blue star-field video, used as the full-bleed background
 css/                  base.css (shared palette + star background), landing.css,
                       survey.css
-js/survey.js          All survey wiring: pickers, city autocomplete, emotion
-                      swapper, NEXT -> compatibility modal, ?test=1 dev hook
+js/survey.js          Stages 1-4 and all wiring: pickers, city autocomplete,
+                      photobooth, reaction system, reveals, dev hooks
+js/final.js           Stage 5: the final verdict screen (standalone module)
+api/judge.js          Vercel serverless function: the AI looks judge. Holds
+                      ANTHROPIC_API_KEY server-side so it never reaches a browser
+config.local.js       Local-dev API key. GITIGNORED + VERCELIGNORED — never commit
+css/mobile.css        Phone layout pass (the survey is mostly used on mobile)
 SYNASTRY-NOTES.md     Every scoring node documented: weights, aspects, orbs, the
                       air bonus / water penalty, Moon-Venus-Mars chemistry, tiers
 assets/
@@ -52,6 +59,13 @@ assets/
                       planets + Ascendant), cross-aspects them, scores 0-100.
                       Anna's birth data lives here: 1996-10-19 21:36,
                       Fredericton NB, Canada (America/Moncton)
+  taste.js            Movie-taste classifier: arthouse canon vs. normie list
+  looks.js            Local pixel-math looks judge — supplies the face box for
+                      the polaroid/standee crops, and the AI judge's fallback
+  looks-ai.js         Claude vision looks judge (client side; posts to
+                      /api/judge when deployed, direct when local)
+  mediapipe/          Vendored MediaPipe selfie segmentation — real background
+                      removal for the polaroid, runs offline (no CDN)
 PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 ```
 
@@ -61,24 +75,27 @@ PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 - **Level map (top):** a pixel-game-inspired progress rail — pink connected routes with five chrome-blue circular stage nodes, styled after handheld-console level maps. Node 1 is active. Pink is the primary color, chrome/silver the secondary.
 - **Anna (center):** large frameless transparent cutout portrait, anchored to the bottom edge of the viewport.
 - **Survey card (right):** three inputs — Birth Date, Birth Time, Birth Location — plus a big red NEXT button.
-- **Emotion Beta (bottom-left):** four buttons (neutral, love, sad, scared) intended to swap Anna's expression.
+- **Beta panels (bottom-left, dev only):** Emotion Beta swaps between Anna's nine expressions; Animation Beta picks a background effect. Both are hidden in production — see [ARCHITECTURE.md](ARCHITECTURE.md) for how reactions fire automatically instead.
 
 ## Known limitations (honest state of things)
 
-- **NEXT flashes the compatibility reveal** (animated ring + counting %, Anna reacts: ≥70 love, 40-69 neutral, 20-39 sad, <20 scared) then advances the stage. The full synastry report modal now hides behind the tiny **ⓘ more info** button (bottom-right, temporary, appears after the first computation). Stages 3-5 don't exist yet, so stage 2's NEXT just replays the (taste-adjusted) reveal.
+- **NEXT flashes the compatibility reveal** (animated ring + counting %, Anna reacts: ≥70 love, 40-69 neutral, 20-39 sad, <20 scared) then advances the stage. Each stage reveals **its own** score with its own label ("movie compatibility", "looks compatibility", "height compatibility"); the running cumulative total is what stage 5 aggregates. The **ⓘ more info** button shows the full report for the test you just finished.
 - **Stage 2 scores movie taste** (`assets/taste.js`): each shelf movie seen = +1.5; if ≤3 seen, NEXT demands ≥2 typed favorites (floating card, poster lookup via the **Wikipedia API** — free, no key; iTunes Search was tried but Apple emptied its movie catalog). Favorites are classified against a curated arthouse canon (+7 each) vs. a basic-normie list/franchise patterns (−9 each); unknowns score 0. The taste modifier is capped at ±25 and folded into the reveal + report.
 - **Beta panels** (bottom-left) each have a −/+ button to hide/show them; the state persists in localStorage.
 - Location autocomplete uses **Open-Meteo geocoding** (free, no key) rather than Google Places; it returns lat/lon + IANA timezone, which the chart math needs. Swap in Google later if desired (needs an API key).
-- The synastry scoring weights/orbs are hand-rolled and tuned for fun, not certified by an astrologer.
-- Not deployed anywhere; local only.
+- The synastry scoring weights/orbs are hand-rolled and tuned for fun, not certified by an astrologer. Same goes for the taste lists and looks thresholds.
+- **The beta panels are dev-only** — hidden in production, where animations and expressions fire automatically per stage and per score instead.
+- `/api/judge` (the AI looks judge) is public and unrate-limited. Set a spend limit in the Anthropic Console.
 
 ## Intended direction / next steps
 
-1. Turn the single page into a structured multi-stage survey (the level-map nodes = survey stages) with local state and validation.
-2. Wire Emotion Beta to swap between `portrait-cutout.png`, `love.png`, `sad.png`, `scared.png`.
-3. Add location autocomplete (Google Places or similar) once an API key is provided.
-4. Compute an actual natal chart from birth date/time/location and use it for matching.
-5. Deploy (likely Vercel, consistent with other Danger Testing projects).
+All five stages, the natal-chart math, autocomplete, the automated reactions, and the Vercel deploy are done. What's left:
+
+1. **Optimize the images** — the expression PNGs are ~1.8MB each and the portraits 4.5–6.5MB. Resize + WebP for a ~90% cut; this is the biggest remaining mobile win.
+2. Rate-limit `/api/judge` if the site gets shared widely.
+3. Add analytics — right now there's no signal that anyone is using it.
+4. A short privacy line on the looks stage, since photos go to the Anthropic API when the AI judge runs.
+5. Optional: swap Open-Meteo for Google Places if the city list ever feels thin.
 
 ## Design references from the original session
 
