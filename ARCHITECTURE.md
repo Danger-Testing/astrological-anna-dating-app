@@ -4,9 +4,17 @@ Context doc for the whole app: the five-stage flow, the four scoring engines, th
 reaction system, and the deployment. Read this before changing anything — several
 parts look independent but are wired together through shared state.
 
-Companion docs: [README.md](README.md) (what it is + file map),
-[SYNASTRY-NOTES.md](SYNASTRY-NOTES.md) (every astrology weight and orb),
-[PROTOTYPE-NOTES.md](PROTOTYPE-NOTES.md) (the original Codex voice session).
+This doc is about **how the running system works**. The companions:
+
+| Doc | Covers |
+|---|---|
+| [README.md](README.md) | What the app is, the file map, what's left to do |
+| [AGENT-NOTES.md](AGENT-NOTES.md) | **Workflows and tooling** — generating Anna's images via the Codex CLI, the cutout/crop scripts, the verification loop, and the multi-agent committing rules |
+| [SYNASTRY-NOTES.md](SYNASTRY-NOTES.md) | Every astrology weight, aspect, and orb |
+| [PROTOTYPE-NOTES.md](PROTOTYPE-NOTES.md) | The original Codex voice session this grew from |
+
+If you're about to commit, read AGENT-NOTES.md §7 first — several sessions edit
+this repo at once and `git add -A` will sweep up their in-flight work.
 
 ---
 
@@ -87,6 +95,31 @@ side door.
 
 ---
 
+## Stage 2: the movie test
+
+Twelve arthouse posters standing on chrome shelves like Blu-ray cases. Click
+one to mark it seen; hover picks it up with a cursor-following 3D tilt, a
+gloss highlight tracking the pointer, and a blue spine folded 90° back so it
+reads as a physical object rather than a thumbnail.
+
+Posters live in `assets/posters/` (12 files, downscaled to ≤1200px), fetched
+from the **IMDb suggestion endpoint**
+(`v3.sg.media-imdb.com/suggestion/x/<query>.json`) matched on title + release
+year. Note for future asset work: **the iTunes Search API is a dead end for
+movies** — it answers HTTP 200 with `resultCount: 0` for every film query,
+apparently because Apple emptied that catalog. Wikipedia's API is what the
+typed-favorites lookup uses.
+
+Scoring (`assets/taste.js`): each shelf movie seen = +1.5. If you've seen ≤3,
+NEXT refuses to advance and demands ≥2 typed favorites instead, classified
+against a curated arthouse canon (+7) versus a basic-normie list and franchise
+patterns (−9); unknowns score 0. Titles are normalized (lowercase, no
+punctuation or diacritics, leading "the" stripped) and **the art list is
+checked before the normie patterns**, so Scorsese's *After Hours* never trips
+the *After* franchise matcher. The taste modifier is capped at ±25.
+
+---
+
 ## Stage 3: Looks Match — two judges
 
 The interesting part of the app. It answers "is this person conventionally
@@ -108,8 +141,45 @@ upload one instead" and the upload path carries on. The camera stream is
 released whenever you leave stage 3 (`stopBooth()` in `goStage`), so the
 recording light doesn't stay on.
 
-Background removal for the polaroid uses **MediaPipe selfie segmentation**,
-vendored under `assets/mediapipe/` so it runs offline with no CDN dependency.
+### Background removal and framing
+
+Background removal uses **MediaPipe selfie segmentation**, vendored under
+`assets/mediapipe/` (~6MB, mostly the SIMD WASM binary) so it runs offline
+with no CDN dependency. Segmentation starts the instant a photo lands — not on
+CAPTURE — so the cutout is usually ready before it's needed. The result,
+`lmCut`, is a canvas of the person on transparency.
+
+Everything downstream degrades gracefully: no model means `lmCut` stays null
+and the old ellipse crops are used. If the polaroid renders before
+segmentation finishes it shows the ellipse and **hot-swaps to the real
+silhouette when the mask arrives**.
+
+**Framing is measured from the mask, never from the skin-tone face box.**
+`looks.js`'s box is fine for scoring but wrong for framing — a red shirt reads
+as skin, the box inflates, and the person renders tiny. So `headMetrics(cut)`
+reads the alpha channel instead:
+
+1. Downscale the cutout to ~96px, collect per-row opaque spans.
+2. Walk down from the hair. Head width changes gently row to row; shoulders
+   arrive as a **sudden widening** (>1.45× the recent median). That jump is
+   where the head ends.
+3. Return hair-top, near-widest width (85th percentile — hair, not ears), head
+   height, and center-x.
+
+The shoulder-jump beats a fixed "head is the top 30%" band because that
+assumption breaks on raised arms, hats, and tight headshots.
+
+Two consumers use those metrics, which is why they must stay in sync:
+
+- **The polaroid** (`faceOnWhite`) scales the cutout so the head is ~52% of
+  frame width with hair-top at 6% — numbers measured off Anna's real studio
+  portrait, so the paired polaroids read as genuinely face-to-face.
+- **The stage-4 standee head** (`faceSticker`) crops hair-top to shoulder line
+  and nothing below, so only a head lands on the cardboard body.
+
+The sticker cache key includes whether a cutout existed (`src + '#cut'`);
+without that, a sticker built before segmentation finished would stick around
+forever.
 
 ### Judge 1 (primary): Claude vision
 
@@ -162,6 +232,81 @@ override, asymmetric fails, no-face fails.
 The loading bar ("running the league calculator…") is theater with a real job:
 it holds on "anna is deliberating…" until the AI promise resolves, so a slow
 call looks intentional rather than frozen.
+
+---
+
+## Stage 4: the height check
+
+Two standees on a floor, a dashed line at Anna's height, and a ruler slider.
+Anna is **5'2" (`ANNA_IN = 62`)**. Making this read as *true* took three
+separate fixes, all of which are load-bearing:
+
+1. **Anna's cutout is sized by its opaque pixels, not its image box.**
+   `alphaBounds()` finds the top and bottom of non-transparent pixels, then the
+   PNG is stretched so hair-to-shoes spans exactly 62 inches. Without it, the
+   transparent padding every PNG cutout carries renders her short of her own
+   height line. The laughing/scared variants get re-measured when they swap in,
+   since `onload` fires again.
+2. **The dashed line is pinned to Anna's rendered head** via
+   `getBoundingClientRect()` against the floor — *not* computed from the
+   floor's bottom edge, which drifts because the standees' feet don't sit
+   exactly on it. Verified by pixel-measuring a screenshot: line at y=301.5,
+   hair at y=303 — flush within the line's own thickness.
+3. **The head sticker is head-only** (see the framing section above); it used
+   to paste in a slab of torso.
+
+Both standees share one pixels-per-inch scale, so the taller one nearly fills
+the floor and raising your height visibly shrinks Anna. The proportions are
+literally accurate — at 5'9" vs 5'2" they measure 69:62 on screen. It reads
+subtle because 7 inches genuinely is only ~10% of a body; that's what it
+actually looks like. Anna reacts too: shorter than her → laughing, 6'5"+
+(`ANNA_SCARED_AT = 77`) → scared.
+
+---
+
+## Stage 5: final verdict
+
+`js/final.js` renders into `#stage5`: one aggregate ring (average of whichever
+stage scores exist) plus a mini ring per test. **≥70 opens the gates** to her
+real socials — `instagram.com/hard_boiledbabe` and `x.com/hard_boiledbabe`
+(**one** underscore, not two; this shipped wrong once). Below 70 you get the
+consolation lineup of celebrity Instagrams instead.
+
+---
+
+## Mobile
+
+`css/mobile.css` is a single `@media (max-width: 700px)` block loaded **after**
+every other stylesheet, so it can only override. Desktop rendering is untouched
+by design — that was the hard constraint.
+
+**The thesis: Anna is the screen.** She stays large and centered through every
+stage so you watch her react while you type, and each stage's controls sit in a
+bottom sheet or strip within thumb reach.
+
+The non-obvious parts:
+
+- **She's anchored by the head, not the feet** (`top: 12px; bottom: auto`). A
+  bottom-anchored Anna gets her face swallowed by the bottom sheet on short
+  screens. Her height is `calc(92dvh - 180px)` so she shrinks *faster* than the
+  visible gap does, keeping her eyes above the sheet at any screen height.
+- **Stage 1's card becomes a sticky bottom sheet**, capped at 56dvh with 42px
+  inputs. Because it's pinned to the bottom, the city autocomplete flips to
+  open **upward** (`top: auto; bottom: 100%`).
+- **Stage 2's two shelf rows become one horizontal film strip.** The `.shelf`
+  wrapper is `display: contents` on desktop (rows stay independent grids) and
+  `flex` with scroll-snap on mobile, the rows dissolving into it via
+  `display: contents`. Cases are `calc((100vw - 60px) / 3.5)` wide so a
+  half-cut poster makes the horizontal scroll discoverable.
+- `dvh` with `vh` fallbacks throughout, and `env(safe-area-inset-bottom)` on
+  every bottom-anchored element — `viewport-fit=cover` in the viewport meta is
+  what makes those insets real.
+- **Beta panels are hidden here as well as in prod** — dev tools don't fit a
+  phone. Same CSS-only hiding rule, for the same reason: the buttons must stay
+  in the DOM for `setMood()`/`setEffect()` to work.
+
+Still open: the Blu-ray pickup tilt is hover-driven, so touch gets
+tap-to-select only. A press-tilt would restore the physicality.
 
 ---
 
