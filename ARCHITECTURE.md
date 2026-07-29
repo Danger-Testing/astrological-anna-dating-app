@@ -95,6 +95,27 @@ side door.
 
 ---
 
+## Stage 1: birth details
+
+Three inputs, because a natal chart needs exactly three things: date, time, and
+place. The place field is the fussy one.
+
+**City autocomplete uses the Open-Meteo geocoding API** (free, no key) rather
+than Google Places — specifically because it returns `latitude`, `longitude`,
+**and the IANA timezone** in one response, and the chart math needs all three.
+Google Places would need a key plus a second call for the timezone.
+
+Two details that look arbitrary but aren't:
+
+- Suggestions commit on **`mousedown`, not `click`** — the input's `blur` fires
+  first and hides the list, so a `click` handler would never run.
+- A free-typed city is **not** accepted. `selected` stays `null` until a real
+  suggestion is picked, and NEXT refuses to advance without it (it re-opens the
+  list with "type a city and pick it from this list ☝️"). Without coordinates
+  there is no chart, so there's nothing to fall back to.
+
+---
+
 ## Stage 2: the movie test
 
 Twelve arthouse posters standing on chrome shelves like Blu-ray cases. Click
@@ -310,6 +331,64 @@ tap-to-select only. A press-tilt would restore the physicality.
 
 ---
 
+## Stage 4: the height check
+
+Two department-store cardboard standees on a floor line, plus a chrome ruler
+slider (58–84 inches, 0.1″ steps, default 5′9″). Drag it and your standee grows
+or shrinks against Anna in real time.
+
+**Anna is 5′2″** (`ANNA_IN = 62`) — the single constant that drives the whole
+stage. Change it and the dashed line, the labels, and every scoring threshold
+follow.
+
+### The two figures
+
+- **You** are blank white cardboard: a CSS `clip-path` body silhouette with an
+  easel base, topped by **your actual face as a JibJab-style sticker** — an
+  ellipse cut around the face box that `assets/looks.js` found in stage 3, given
+  a white die-cut border and a gentle wobble. No stage-3 photo (e.g. a `?stage=4`
+  dev jump) falls back to a "?" head.
+- **Anna** is a real photorealistic full-body cutout, sized to exactly 5′2″.
+
+Scale is **fixed** — `floor height × 0.97 / 80` — so only your standee resizes.
+An earlier version normalized to whichever figure was taller, which made Anna
+appear to shrink as you grew; that read as a bug and was replaced.
+
+### Anna reacts to the comparison
+
+`syncStandees()` swaps her cutout by how you measure up:
+
+| Your height | Image |
+|---|---|
+| shorter than 5′2″ | `anna-fullbody-laughing.png` — laughing, pointing at you |
+| 5′2″ – 6′4″ | `anna-fullbody.png` — neutral |
+| 6′5″+ (`ANNA_SCARED_AT = 77`) | `anna-fullbody-scared.png` — scared, backing away |
+
+Each variant is probed with an `Image()` on load and only used once confirmed to
+exist (`annaLaughOK` / `annaScaredOK`), so a missing or renamed file degrades to
+neutral instead of showing a broken image.
+
+### Scoring
+
+`heightFlag()` encodes Anna's preference — she's 5′2″ but wants tall:
+
+| Height | Points |
+|---|---|
+| 6′0″ (±½″) — the peak | **+14** |
+| 5′10″–6′2″ | +12 |
+| 6′3″ | +8 |
+| 5′8″–5′10″ | +6 |
+| just past the 5′7″ minimum | +1 |
+| below 5′7″ (hard minimum) | −20 |
+| shorter than Anna herself | **−26** |
+| 6′5″–6′7″ | −8 |
+| 6′7″+ | −16 |
+
+The stage's own reveal shows `heightPercent()` = `50 + pts × 3.4` (clamped
+2–99); `withHeight()` folds the raw points into the cumulative total.
+
+---
+
 ## Reactions: emotions + animations
 
 Two beta panels drive Anna's expression (9 PNG variants) and a background FX
@@ -344,6 +423,139 @@ still exist in production for reactions to work.
 
 Anna's default mood still follows the score via `moodFor()` — love ≥70, neutral
 40–69, sad 20–39, scared below — unless a reveal passes an explicit override.
+
+---
+
+## Making new Anna images (the asset pipeline)
+
+Every Anna image — the nine emotion faces and all three full-body standees — is
+generated the same way. **No API key needed:** the Codex desktop app ships a
+full CLI inside its bundle, with image generation on your existing Codex login.
+
+```bash
+cd /tmp/anna-emotions
+/Applications/Codex.app/Contents/Resources/codex exec \
+  --skip-git-repo-check \
+  -s workspace-write \
+  -i reference.png \
+  - < prompt.txt
+```
+
+The binary is at `/Applications/Codex.app/Contents/Resources/codex` and is
+**not on PATH** — use the full path. `exec` is non-interactive, and
+`-s workspace-write` is what lets it save into the cwd.
+
+**The gotcha that silently wastes a run:** `-i` is variadic. If you pass the
+prompt as a positional argument after it, `-i` swallows the prompt as another
+filename, Codex reads an empty prompt from stdin, and exits having done nothing.
+Pass `-` as the prompt and pipe the real prompt via stdin.
+
+**Write the prompt for an agent, not an image API.** Tell it that it has an
+image tool, describe the reference, describe each output, and give **exact
+output filenames** plus: *"save each file at exactly those names in the current
+working directory, rename if your tool outputs other names, create no other
+files."*
+
+For identity consistency, attach the reference with `-i` and restate the
+invariants — same identity, same framing, same outfit, same background. The
+full-body variants used **the first full-body shot as their reference**, not the
+head-and-shoulders portrait, which is why the outfit, framing, and flats match
+across all three.
+
+Runs take a few minutes and burn Codex credits, so background them.
+
+### Post-processing (required)
+
+Codex returns opaque images. Two steps make them usable:
+
+```bash
+swift scripts/cutout.swift in.png out.png     # background -> alpha
+```
+
+`scripts/cutout.swift` uses Vision's `VNGenerateForegroundInstanceMaskRequest`
+plus CoreImage `CIBlendWithMask` — macOS 14+, no dependencies, no install.
+
+Then **trim the transparent margins** (PIL `getbbox()` + crop). This is not
+cosmetic: the height math assumes her feet sit at the very bottom edge of the
+image, so leftover margin makes her measure short.
+
+---
+
+## Mobile layer
+
+`css/mobile.css` loads **last** and only overrides inside
+`@media (max-width: 700px)`, so desktop rendering is untouched. The thesis:
+Anna is the screen, and every stage's controls live in a bottom sheet within
+thumb reach.
+
+Four fixes worth not re-breaking:
+
+1. **Dynamic Anna sizing** (`sizeAvatar()` in `js/survey.js`). Static CSS can't
+   know a sheet's real height, so JS measures it: her chin sits ~62% down the
+   portrait, and she's scaled until the chin clears whichever sheet the current
+   stage shows (`.card` / `.shelfCta` / `.booth`). Runs on resize, on load, and
+   after every stage change. Without it the bottom sheet eats her face on short
+   screens.
+2. **No sideways scrolling.** The oversized cutout is wider than a phone screen
+   and used to let you scroll the layout off-center; `overflow-x: hidden` +
+   `max-width: 100vw` on `html, body` clamps it.
+3. **No iOS focus zoom.** Safari auto-zooms any input under 16px, and the card's
+   fields were 15px. They're exactly 16px on mobile — no `maximum-scale` hack,
+   which would also block legitimate pinch-zoom.
+4. **Pinned verdict footer.** On looks match the score + NEXT are
+   `position: fixed` with `env(safe-area-inset-bottom)` padding so they sit
+   above Safari's URL bar rather than under it.
+
+The dev panels are hidden here too (`.betas { display: none }`), on top of the
+`body.prod` rule.
+
+---
+
+## Small mechanisms that look like bugs if you don't know
+
+- **The beta panels' pre-paint collapse.** Their hidden/shown state lives in
+  `localStorage`. If only `survey.js` applied it, the panels would paint open
+  and visibly flash closed on every refresh — the big astronomy bundle blocks
+  the page before JS runs. So a three-line inline script in `<head>` reads
+  `localStorage` and sets `html.bcA` / `html.bcM`, which CSS uses to hide the
+  bodies **before first paint**. `survey.js` then removes those classes once it
+  applies the real state — **if it didn't, reopening a panel would silently do
+  nothing**, since the pre-paint rule would still be winning.
+- **`.betas` carries `z-index: 12`** because stage 2's shelf cases are
+  3D-transformed and otherwise stack above the panels and swallow their clicks.
+- **The favicon is not AI-generated.** `favicon.ico`, `assets/favicon.png`, and
+  `assets/apple-touch-icon.png` are Anna's face cropped from
+  `portrait-cutout.png` and circle-masked with PIL. To rebuild, crop around
+  `(50%, 40%)` at `0.72 × width` and mask with a supersampled ellipse.
+- **Poster lookups need `pilicense=any`.** Film posters are non-free, so the
+  Wikipedia `pageimages` API returns *no* thumbnail without that flag. Also
+  filter `(disambiguation)` results and strip the `" (1979 film)"` suffix.
+- **Effects use negative animation delays** so every loop starts mid-flight and
+  the screen is already full the instant you switch effects, instead of
+  particles trickling in from empty.
+
+---
+
+## Testing approach
+
+There's no test suite. Verification is done by driving a real headless browser
+(Playwright's Chromium, borrowed from `../appstar-website/node_modules`) against
+`python3 -m http.server`, then **looking at the screenshots** — several real
+bugs surfaced only visually: the shelf cases eating panel clicks, the favorites
+card rendering below the fold, Anna's head crop clipping her mouth.
+
+Three techniques that earned their keep:
+
+- **A synthetic face image** (PIL: skin-tone oval, dark hair block, two eyes) to
+  exercise the whole looks-match flow deterministically, with no webcam and no
+  real photo.
+- **CPU-throttled reload with per-frame sampling**
+  (`Emulation.setCPUThrottlingRate` + a `requestAnimationFrame` probe recording
+  computed styles) to prove the panel flash was actually gone rather than just
+  too fast to catch.
+- **Node for the astrology math**: `Astronomy` is a browserify UMD bundle, so
+  `require()` it, stub `global.window`, then `eval` `synastry.js` and call
+  `Synastry.compute()` directly.
 
 ---
 
@@ -388,6 +600,48 @@ one wins — keep them in sync.
 | `LooksAI.forgetKey()` | clears a bad key from localStorage |
 
 ---
+
+## Gotchas that already cost time
+
+Read this before debugging something that makes no sense.
+
+- **Stale CSS caches lie to you.** A "missing background color" on the landing
+  CTA turned out to be a cached `base.css` without `--pink-hot`, which
+  invalidated the whole gradient and left the button hollow. It now uses literal
+  hexes plus a solid `background-color` fallback so it can't go transparent.
+  When the source looks right but the render doesn't, hard-refresh before
+  editing code. (Same reason the `?v=` script cache-busters exist.)
+- **`filter` on a `transform-style: preserve-3d` element flattens the 3D.** A
+  `drop-shadow` on `.case` silently killed the Blu-ray spine; the shadow lives
+  on the child `img` instead.
+- **PNG cutouts ship with transparent margins.** Never size a person by their
+  image box — measure the alpha channel (`alphaBounds`).
+- **Skin-tone detection is for scoring, not framing.** See stage 3.
+- **Offscreen WebKit doesn't advance CSS animations.** Screenshots via an
+  offscreen `WKWebView` catch entry animations at `opacity: 0` and look empty.
+  Inject `*{animation:none!important;transition:none!important}` before
+  snapshotting or you'll chase a rendering bug that doesn't exist.
+- **iTunes Search returns zero results for movies.** Use IMDb suggestions or
+  Wikipedia.
+
+## Verifying changes
+
+There's no test suite; verification is visual, and the dev hooks above are the
+fast path. Serve and open in a real browser:
+
+```bash
+python3 -m http.server 8901
+open -a Comet http://localhost:8901/survey.html?stage=2
+```
+
+For agent-side screenshots on this machine there's no Chrome and no Playwright,
+but a short Swift script driving an offscreen `WKWebView` works well:
+`takeSnapshot` for images, `callAsyncJavaScript` for probing live geometry
+(that's how the height-line alignment was confirmed numerically instead of by
+eye). Two rules: drive the **real** flow (build a `File`, set `input.files`,
+dispatch `change`) rather than calling internals, and pass
+`cachePolicy: .reloadIgnoringLocalAndRemoteCacheData` or you'll screenshot
+stale CSS. **The user browses with Comet and Safari — don't launch Dia.**
 
 ## Production considerations
 
