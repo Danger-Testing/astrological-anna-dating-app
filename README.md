@@ -68,6 +68,17 @@ assets/
                       /api/judge when deployed, direct when local)
   mediapipe/          Vendored MediaPipe selfie segmentation — real background
                       removal for the polaroid, runs offline (no CDN)
+  anna-fullbody.png   Stage-4 standee: full-body Anna, neutral (5'2")
+  anna-fullbody-laughing.png   ...laughing + pointing (you're shorter than her)
+  anna-fullbody-scared.png     ...scared (you're 6'5"+)
+  posters/            The 12 movie-test poster images
+  fonts/              M PLUS Rounded 1c (the DS-menu typeface)
+  favicon.png         Anna's face, circle-masked (also favicon.ico at the root
+  apple-touch-icon.png         and apple-touch-icon for iOS home screens)
+scripts/cutout.swift  Vision-based background remover: turns a generated Anna
+                      image into a transparent cutout (see ARCHITECTURE.md)
+ARCHITECTURE.md       How it all works: stage flow, the scoring chain, the
+                      reaction system, the image pipeline, gotchas
 PROTOTYPE-NOTES.md    Original prototype documentation from the Codex session
 ```
 
