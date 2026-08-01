@@ -172,7 +172,8 @@
     gap: 14px;
     width: 100%;
     margin-top: auto;
-    padding: 20px 18px 4px;
+    margin-bottom: -31px;
+    padding: 20px 18px 50px;
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;

@@ -259,7 +259,7 @@
   width: 100%;
   margin-top: 16px;
   padding: 14px;
-  background: var(--pink);
+  background: var(--next-gradient);
   color: #fff;
   border: 0;
   border-radius: 14px;
@@ -717,7 +717,7 @@ body.s2 .avatar {
   border-radius: 3px 6px 6px 3px;
   border: 1px solid rgba(255, 255, 255, .25);
   transform: translateZ(6px);
-  box-shadow: 0 10px 14px rgba(0, 0, 0, .55);
+  box-shadow: none;
   transition: box-shadow .18s ease-out;
   -webkit-user-select: none;
   user-select: none;
@@ -860,7 +860,6 @@ body.s2 .avatar {
 
 .ringFill {
   stroke: var(--pink);
-  filter: drop-shadow(0 0 10px rgba(241, 78, 152, .9));
 }
 
 .ringPct {
@@ -1158,7 +1157,7 @@ body.s3 .avatar {
 }
 
 #lmTake {
-  background: var(--pink);
+  background: var(--next-gradient);
   color: #fff;
   box-shadow: 0 5px 0 var(--pink-dark);
 }

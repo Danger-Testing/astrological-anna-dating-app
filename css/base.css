@@ -26,6 +26,9 @@
   --pink-card-border: #b3186b;
   --pink-card: #ffe4f0;
   --pink-soft: #ffd9e9;
+  --next-gradient:
+    linear-gradient(180deg, #ffb6ed 0%, rgba(255, 182, 237, 0) 70%),
+    linear-gradient(90deg, #ed468c 0%, #ed468c 100%);
   --text-box-stroke-start: #fef4fb;
   --text-box-stroke-end: #f898d8;
   --text-box-stroke-gradient: linear-gradient(180deg, var(--text-box-stroke-start) 0%, var(--text-box-stroke-end) 100%);
