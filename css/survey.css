@@ -2,8 +2,10 @@
 
 /* ---- Level map (top progress rail) ---- */
 .map {
+  --route-progress: 0%;
   height: 160px;
   position: relative;
+  z-index: 100;
 }
 
 .route {
@@ -16,6 +18,18 @@
   background: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af);
   border: 2px solid #828692;
   box-shadow: 0 2px 3px rgba(0, 0, 0, .25);
+  overflow: hidden;
+}
+
+.route::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--route-progress);
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--pink-soft), var(--pink) 48%, var(--pink-dark));
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, .45);
+  transition: width .45s ease;
 }
 
 .node {
@@ -25,7 +39,7 @@
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, var(--pink-soft), #f772b0 30%, var(--pink) 60%, var(--pink-dark) 85%);
+  background: radial-gradient(circle at 35% 30%, #ffffff, #d9dbe2 45%, #9fa3af);
   border: 6px solid #e9ebf2;
   box-shadow:
     0 0 0 2px #828692,
@@ -34,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--pink-deep);
   font-weight: bold;
   font-size: 22px;
 }
@@ -127,10 +141,6 @@
   top: 12%;
   width: 330px;
   padding: 20px;
-  background: var(--pink-card);
-  border: 3px solid var(--pink-card-border);
-  border-radius: 18px;
-  box-shadow: 7px 9px 0 rgba(120, 20, 80, .35);
 }
 
 .card b {
@@ -249,7 +259,7 @@
   width: 100%;
   margin-top: 16px;
   padding: 14px;
-  background: var(--pink);
+  background: var(--next-gradient);
   color: #fff;
   border: 0;
   border-radius: 14px;
@@ -281,9 +291,6 @@
 
 .betaPanel {
   padding: 12px;
-  background: var(--pink-soft);
-  border: 3px solid var(--pink);
-  border-radius: 15px;
 }
 
 .betaHead {
@@ -342,6 +349,8 @@ html.bcM #moodsPanel .betaBody { display: none; }
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .2) 6%, #000 18%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, .2) 6%, #000 18%, #000 100%);
 }
 
 #fx span {
@@ -527,10 +536,6 @@ html.bcM #moodsPanel .betaBody { display: none; }
   width: min(92vw, 540px);
   max-height: 86vh;
   overflow: auto;
-  background: var(--pink-card);
-  border: 4px solid var(--pink-card-border);
-  border-radius: 22px;
-  box-shadow: 10px 12px 0 rgba(120, 20, 80, .4);
   padding: 24px;
   color: var(--ink);
 }
@@ -549,23 +554,6 @@ html.bcM #moodsPanel .betaBody { display: none; }
   color: var(--pink);
 }
 
-.verdict {
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-  margin: 4px 0 14px;
-}
-
-.big3 {
-  background: #fff;
-  border: 3px solid var(--pink-border);
-  border-radius: 12px;
-  padding: 10px;
-  font-size: 14px;
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-
 .modal h3 {
   margin: 12px 0 4px;
   color: var(--pink-heading);
@@ -582,13 +570,6 @@ html.bcM #moodsPanel .betaBody { display: none; }
 .modal li {
   font-size: 14px;
   margin: 4px 0;
-}
-
-.fine {
-  font-size: 11px;
-  color: #a86e8d;
-  text-align: center;
-  margin: 14px 0 10px;
 }
 
 .closeM {
@@ -659,16 +640,33 @@ body.s2 .avatar {
   text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 10px rgba(0, 0, 0, .3);
 }
 
-/* mobile-only call to action above the film strip (mobile.css shows it) */
+/* Mobile-only instruction beneath the stage heading (mobile.css shows it). */
 .shelfCta { display: none; }
 
+.shelfHead [hidden] { display: none; }
+
+#stage2 #seenCount {
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
 /* Each row is 6 cases standing on a chrome plank (same finish as the route rail) */
-/* On desktop the .shelf wrapper is layout-invisible (rows stay direct flex
-   children of #stage2); css/mobile.css turns it into a horizontal strip */
-.shelf { display: contents; }
+/* Keep both desktop rows in one centered group. If each row independently
+   flexes to fill the stage, narrower posters leave a huge false "gap"
+   between the shelves as the browser width shrinks. */
+.shelf {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(24px, 4vh, 40px);
+}
 
 .shelfRow {
-  flex: 1;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0 .6vw;
@@ -678,6 +676,12 @@ body.s2 .avatar {
   padding: 14px 1% 0;
   border-bottom: 14px solid transparent;
   border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 14px 0;
+}
+
+#shelfRow2 { padding-top: 0; }
+
+@media (min-width: 701px) {
+  body.s2 .shelfRow { transform: translateY(-36px); }
 }
 
 /* The case: a Blu-ray in your hand. preserve-3d so the spine reads as a real
@@ -713,7 +717,7 @@ body.s2 .avatar {
   border-radius: 3px 6px 6px 3px;
   border: 1px solid rgba(255, 255, 255, .25);
   transform: translateZ(6px);
-  box-shadow: 0 10px 14px rgba(0, 0, 0, .55);
+  box-shadow: none;
   transition: box-shadow .18s ease-out;
   -webkit-user-select: none;
   user-select: none;
@@ -793,10 +797,20 @@ body.s2 .avatar {
   padding: 12px 36px;
 }
 
-/* Progress rail: a finished stage turns chrome with a pink check */
+#stage2 .shelfFoot .next {
+  width: min(64vh, 480px);
+  padding: 14px;
+}
+
+#stage4 .shelfFoot .next {
+  width: min(64vh, 480px);
+  padding: 14px;
+}
+
+/* Progress rail: unfinished stages are chrome; completed stages turn pink. */
 .node.done {
-  background: radial-gradient(circle at 35% 30%, #ffffff, #d9dbe2 45%, #9fa3af);
-  color: var(--pink-deep);
+  background: radial-gradient(circle at 35% 30%, var(--pink-soft), #f772b0 30%, var(--pink) 60%, var(--pink-dark) 85%);
+  color: #fff;
   cursor: pointer;
 }
 
@@ -846,7 +860,6 @@ body.s2 .avatar {
 
 .ringFill {
   stroke: var(--pink);
-  filter: drop-shadow(0 0 10px rgba(241, 78, 152, .9));
 }
 
 .ringPct {
@@ -906,21 +919,46 @@ body.s2 .avatar {
    inline box would push below the fold. Grows upward as chips are added. */
 #faves {
   display: none;
-  position: fixed;
+  position: absolute;
   left: 50%;
   bottom: 96px;
   transform: translateX(-50%);
   z-index: 14;
-  width: min(92vw, 560px);
+  width: min(64vh, 480px);
   padding: 14px 16px;
-  background: var(--pink-card);
-  border: 3px solid var(--pink-card-border);
-  border-radius: 16px;
-  box-shadow: 5px 6px 0 rgba(120, 20, 80, .35);
   color: var(--pink-heading);
 }
 
 #faves.show { display: block; }
+
+#stage2.needsFaves #faves {
+  bottom: 18px;
+}
+
+#stage2.needsFaves > .shelfFoot {
+  display: none;
+}
+
+#stage2.needsFaves .shelfCta {
+  display: none;
+}
+
+#favesNextSlot #nextBtn2 {
+  width: 100%;
+  margin: 14px 0 0;
+  padding: 14px;
+}
+
+#nextBtn2 {
+  transition: opacity .25s ease, filter .25s ease;
+}
+
+#nextBtn2.awaitingFaves {
+  opacity: .3;
+  filter: saturate(.45);
+  cursor: not-allowed;
+  pointer-events: none;
+}
 
 #faves > b {
   display: block;
@@ -1026,6 +1064,8 @@ body.s3 #stage3 {
   z-index: 3;
 }
 
+#stage3.hasResult > .shelfHead { display: none; }
+
 body.s3 .card { display: none; }
 
 /* Anna shrinks into the corner exactly like stage 2 */
@@ -1041,8 +1081,19 @@ body.s3 .avatar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 22px;
+  padding-bottom: clamp(80px, 14vh, 130px);
+}
+
+.lmMedia {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }
 
 /* Wii-channel-style tile: chrome bezel, glossy plastic panel, top sheen */
@@ -1055,7 +1106,7 @@ body.s3 .avatar {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 16px;
   background: linear-gradient(180deg, #ffffff 0%, #eef3f9 50%, #d9e2ee 100%);
   border: 6px solid #e9ebf2;
   border-radius: 26px;
@@ -1088,10 +1139,13 @@ body.s3 .avatar {
 .lmBtns {
   display: flex;
   gap: 12px;
-  margin: 4px 0 2px;
+  width: calc(100% - 32px);
+  margin: 4px 16px 2px;
 }
 
 .lmBtns button {
+  flex: 1 1 0;
+  min-width: 0;
   padding: 13px 20px;
   border: 0;
   border-radius: 13px;
@@ -1103,7 +1157,7 @@ body.s3 .avatar {
 }
 
 #lmTake {
-  background: var(--pink);
+  background: var(--next-gradient);
   color: #fff;
   box-shadow: 0 5px 0 var(--pink-dark);
 }
@@ -1120,8 +1174,12 @@ body.s3 .avatar {
 .lmBtns button:active { transform: translateY(4px); box-shadow: none; }
 
 .lmDrop b {
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: 32px;
   font-size: 21px;
   letter-spacing: 2px;
+  text-align: center;
   text-transform: uppercase;
 }
 
@@ -1130,9 +1188,15 @@ body.s3 .avatar {
 /* CSS-drawn candy point-and-shoot: pink body, chrome lens, flash */
 .lmCam {
   position: relative;
+  flex: 0 0 84px;
   width: 122px;
+  min-width: 122px;
+  max-width: 122px;
   height: 84px;
+  min-height: 84px;
+  max-height: 84px;
   margin-top: 10px;
+  margin-bottom: 8px;
   border-radius: 16px;
   font-style: normal;
   background: linear-gradient(180deg, #fdd7e9 0%, #f591c1 45%, #e0509d 100%);
@@ -1196,10 +1260,47 @@ body.s3 .avatar {
   box-shadow: 0 0 7px rgba(255, 235, 150, .95), inset 0 1px 1px rgba(255, 255, 255, .9);
 }
 
-/* once a photo is picked it becomes the drop zone's background */
-.lmDrop.hasPhoto { border-style: solid; }
+/* Once a photo is picked, the channel tile becomes the same white polaroid
+   used by the comparison result. The uploaded image is inherited by the
+   photo-area pseudo-element so the bottom caption stays clean. */
+.lmDrop.hasPhoto {
+  aspect-ratio: 5 / 6;
+  background: #fff;
+  opacity: 1;
+  border: 0;
+  border-radius: 6px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, .45);
+}
 
-.lmDrop.hasPhoto i, .lmDrop.hasPhoto span { display: none; }
+.lmDrop.hasPhoto::before {
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  bottom: 96px;
+  height: auto;
+  border-radius: 2px;
+  background-color: var(--sky);
+  background-image: var(--lm-photo);
+  background-position: center;
+  background-size: cover;
+}
+
+.lmDrop.hasPhoto::after {
+  content: 'YOU';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 48px;
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.lmDrop.hasPhoto i,
+.lmDrop.hasPhoto span,
+.lmDrop.hasPhoto .lmBtns { display: none; }
 
 .lmDrop.hasPhoto b {
   background: rgba(255, 228, 240, .92);
@@ -1207,7 +1308,21 @@ body.s3 .avatar {
   padding: 8px 14px;
 }
 
+#lmPrompt.ready {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  color: var(--pink-heading);
+  font-size: 21px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .lmCapture { width: min(64vh, 480px); margin: 0; }
+
+.lmCapture[hidden] { display: none; }
 
 .lmCapture:disabled { opacity: .45; cursor: not-allowed; }
 
@@ -1218,10 +1333,11 @@ body.s3 .avatar {
 
 .lmPair {
   flex: 1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3vw;
+  gap: 24px;
 }
 
 .pol {
@@ -1261,12 +1377,102 @@ body.s3 .avatar {
 }
 
 .lmHeart {
-  font-size: 52px;
-  animation: heartThrob 1s ease-in-out infinite;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .3));
 }
 
-@keyframes heartThrob { 50% { transform: scale(1.25); } }
+.lmHeartWhole,
+.lmHeartHalf {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-origin: center;
+}
+
+.lmHeart.pumping .lmHeartWhole {
+  animation: heartPumpOnce .8s ease-in-out infinite;
+}
+
+.lmHeart.breaking .lmHeartWhole {
+  animation:
+    heartPumpOnce .5s ease-in-out 4,
+    heartSwap .01s linear 2s forwards;
+}
+
+.lmHeartHalf {
+  visibility: hidden;
+}
+
+.lmHeartLeft {
+  clip-path: polygon(0 0, 53% 0, 42% 24%, 57% 48%, 43% 68%, 53% 100%, 0 100%);
+  animation: heartLeftDrop .8s cubic-bezier(.2, .8, .35, 1) 2s forwards;
+}
+
+.lmHeartRight {
+  clip-path: polygon(53% 0, 100% 0, 100% 100%, 53% 100%, 43% 68%, 57% 48%, 42% 24%);
+  animation: heartRightDrop .8s cubic-bezier(.2, .8, .35, 1) 2s forwards;
+}
+
+@keyframes heartPumpOnce {
+  0%, 100% { transform: scale(1); }
+  42% { transform: scale(1.24); }
+  70% { transform: scale(.96); }
+}
+
+@keyframes heartSwap {
+  to {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+@keyframes heartLeftDrop {
+  0% {
+    visibility: visible;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  55% { transform: translate(-8px, 19px) rotate(-11deg); }
+  100% {
+    visibility: visible;
+    transform: translate(-13px, 34px) rotate(-19deg);
+  }
+}
+
+@keyframes heartRightDrop {
+  0% {
+    visibility: visible;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  55% { transform: translate(8px, 22px) rotate(11deg); }
+  100% {
+    visibility: visible;
+    transform: translate(13px, 38px) rotate(19deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lmHeart.pumping .lmHeartWhole { animation: none; }
+
+  .lmHeart.breaking .lmHeartWhole { visibility: hidden; animation: none; }
+
+  .lmHeartLeft {
+    visibility: visible;
+    animation: none;
+    transform: translate(-13px, 34px) rotate(-19deg);
+  }
+
+  .lmHeartRight {
+    visibility: visible;
+    animation: none;
+    transform: translate(13px, 38px) rotate(19deg);
+  }
+}
 
 /* Loading bar: candy stripes crawling while the "analysis" runs */
 .lmLoad {
@@ -1328,6 +1534,21 @@ body.s3 .avatar {
   -webkit-backdrop-filter: blur(4px);
 }
 
+.lmVerdictScore,
+.lmVerdictStatus {
+  display: block;
+}
+
+.lmVerdictScore {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.lmVerdictStatus {
+  margin-top: 8px;
+  line-height: 1.2;
+}
+
 .lmVerdict.yes {
   color: #fff;
   box-shadow: 0 0 26px rgba(140, 255, 170, .4);
@@ -1342,7 +1563,7 @@ body.s3 .avatar {
   display: block;
   font-size: 15px;
   letter-spacing: 1px;
-  margin-top: 4px;
+  margin-top: 8px;
   color: #fff;
 }
 
@@ -1350,7 +1571,15 @@ body.s3 .avatar {
   from { opacity: 0; transform: scale(2.4) rotate(-6deg); }
 }
 
-.lmFoot { visibility: hidden; }
+.lmFoot {
+  visibility: hidden;
+  justify-content: center;
+}
+
+.lmFoot .next {
+  width: min(64vh, 480px);
+  padding: 14px;
+}
 
 .lmFoot.show { visibility: visible; }
 
@@ -1451,13 +1680,17 @@ body.s4 #stage4 {
 body.s4 .card { display: none; }
 body.s4 .avatar { display: none; }
 
+#stage4 #hcLine {
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
 /* the floor the standees stand on */
 .hcFloor {
   flex: 1;
   position: relative;
   margin: 0 6%;
-  border-bottom: 6px solid rgba(255, 255, 255, .75);
-  box-shadow: 0 6px 0 rgba(130, 134, 146, .5);
 }
 
 .hcPair {
@@ -1474,7 +1707,7 @@ body.s4 .avatar { display: none; }
 /* department-store cardboard standee: photo head + flat silhouette + easel base */
 .hcStd {
   position: relative;
-  filter: drop-shadow(6px 8px 0 rgba(60, 20, 45, .3));
+  transition: height .08s linear;
 }
 
 .hcStd u { position: absolute; display: block; text-decoration: none; }
@@ -1527,17 +1760,8 @@ body.s4 .avatar { display: none; }
 
 /* easel base */
 .hcBase {
-  bottom: 0;
-  left: 18%;
-  right: 18%;
-  height: 2.5%;
-  min-height: 8px;
-  background: linear-gradient(180deg, #c9ced8, #9aa0ad);
-  border-radius: 3px;
-  clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+  display: none !important;
 }
-
-.hcStd.anna .hcBase { background: linear-gradient(180deg, var(--pink-deep), var(--pink-dark)); }
 
 /* dashed line marking Anna's height for the comparison */
 .hcAnnaLine {
@@ -1593,8 +1817,7 @@ body.s4 .avatar { display: none; }
   border: 2px solid #828692;
   background:
     repeating-linear-gradient(90deg,
-      transparent 0 9px, rgba(90, 96, 110, .55) 9px 11px,
-      transparent 11px 47px, rgba(90, 96, 110, .8) 47px 50px),
+      transparent 0 11px, rgba(90, 96, 110, .55) 11px 12px) left bottom / 100% 14px no-repeat,
     linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af);
   box-shadow: 0 3px 5px rgba(0, 0, 0, .3), inset 0 2px 3px rgba(255, 255, 255, .8);
   cursor: ew-resize;
@@ -1642,27 +1865,27 @@ body.s4 .avatar { display: none; }
   color: #8a6a50;
 }
 
-/* JibJab-style sticker head: elliptical face cutout pasted over the cardboard,
-   gently wobbling. Overrides the circle-crop defaults. */
+/* Uploaded-photo head: a fixed circle anchored at the shoulders. Its size is
+   independent of the selected height, while the square source crop fills it. */
 .hcStd u.hcHead.sticker {
-  width: 58%;
-  height: 18%;
-  border: 0;
-  border-radius: 0;
-  background-color: transparent;
-  box-shadow: none;
-  background-size: contain;
+  top: 13.5%;
+  width: clamp(80px, 9vw, 104px);
+  height: clamp(80px, 9vw, 104px);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background-color: #e8d4b8;
+  box-shadow: 0 0 0 2px rgba(120, 90, 60, .55);
+  background-size: cover;
   background-repeat: no-repeat;
-  background-position: center bottom;
+  background-position: center;
   z-index: 2;
-  transform-origin: 50% 88%;
+  transform-origin: center;
   animation: headWobble 2.8s ease-in-out infinite;
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .25));
 }
 
 @keyframes headWobble {
-  0%, 100% { transform: translateX(-50%) rotate(-3.5deg); }
-  50%      { transform: translateX(-50%) rotate(3.5deg); }
+  0%, 100% { transform: translate(-50%, -55%) rotate(-3.5deg); }
+  50%      { transform: translate(-50%, -55%) rotate(3.5deg); }
 }
 
 /* real full-body Anna cutout, when assets/anna-fullbody.png exists */
@@ -1689,7 +1912,7 @@ body.s4 .avatar { display: none; }
    Buttons stay in the DOM so stage/reveal reactions can still drive them. ---- */
 body.prod .betas { display: none !important; }
 
-/* stage 4 sits on the palest part of the sky — solid DS colors, no shadows */
-body.s4 .shelfHead b { color: var(--pink); }
-body.s4 .shelfHead span { color: var(--pink-heading); }
+/* Keep the height-check heading legible over every background frame. */
+body.s4 .shelfHead b,
+body.s4 .shelfHead span { color: #fff; }
 body.s4 .shelfFoot .seen { color: var(--pink-heading); }

@@ -39,6 +39,9 @@
   }
 
   .n1 { left: max(4%, 34px); }
+  .n2 { left: calc(25% + max(2%, 17px)); }
+  .n3 { left: 50%; }
+  .n4 { left: calc(75% - max(2%, 17px)); }
   .n5 { left: calc(100% - max(4%, 34px)); }
 
   /* stage names don't fit five-across on a phone — the glowing node says
@@ -63,6 +66,32 @@
     height: calc(92dvh - 180px);
     z-index: 1;
     pointer-events: none;
+  }
+
+  /* Feather only Anna's full-page portrait into the mobile background.
+     Height-check art and polaroids use separate elements and stay unmasked. */
+  .avatar > #anna {
+    -webkit-mask-image: radial-gradient(
+      ellipse 180% 100% at 50% 0%,
+      #000 0%,
+      #000 78%,
+      rgba(0, 0, 0, .7) 88%,
+      transparent 100%
+    );
+    mask-image: radial-gradient(
+      ellipse 180% 100% at 50% 0%,
+      #000 0%,
+      #000 78%,
+      rgba(0, 0, 0, .7) 88%,
+      transparent 100%
+    );
+  }
+
+  /* On the birth-details stage, lift Anna well above the bottom sheet so her
+     face stays visible instead of sitting behind the form. */
+  body:not(.s2):not(.s3):not(.s4):not(.s5) .avatar {
+    bottom: 24vh;
+    bottom: 24dvh;
   }
 
   /* undo the desktop corner-shrink so she stays centered on s2/s3 */
@@ -94,8 +123,7 @@
     max-height: 56dvh;
     overflow-y: auto;
     z-index: 6;
-    border-radius: 22px 22px 0 0;
-    border-bottom: 0;
+    border-radius: var(--text-box-radius);
     box-shadow: 0 -8px 26px rgba(120, 20, 80, .4);
     padding: 12px 16px calc(10px + env(safe-area-inset-bottom));
   }
@@ -120,7 +148,7 @@
     margin: 0 0 4px;
   }
 
-  /* ================= stage 2: horizontal film strip ================= */
+  /* ================= stage 2: horizontal movie strip ================= */
 
   body.s2 #stage2 {
     inset: 0;
@@ -133,20 +161,31 @@
 
   .shelfHead span { font-size: 12px; }
 
-  /* .shelf is display:contents on desktop (rows keep their grid); here it
-     becomes one thumb-scrollable strip and the rows dissolve into it */
+  /* Dissolve the two desktop rows into one swipeable strip. Keeping part of
+     the next case visible makes the horizontal interaction discoverable. */
   .shelf {
+    flex: 0 0 auto;
     display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    flex-direction: row;
+    flex-wrap: nowrap;
     align-items: end;
     gap: 14px;
+    width: 100%;
     margin-top: auto;
-    padding: 20px 18px 2px;
-    border-bottom: 12px solid transparent;
-    border-image: linear-gradient(#ffffff, #d9dbe2 45%, #9fa3af) 0 0 100% 0 / 0 0 12px 0;
+    margin-bottom: -31px;
+    padding: 20px 18px 50px;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    border: 0;
+    border-image: none;
   }
+
+  .shelf::-webkit-scrollbar { display: none; }
+
+  #stage2.needsFaves .shelf { display: none; }
 
   .shelfRow {
     display: contents;
@@ -154,11 +193,10 @@
 
   .case {
     flex: 0 0 auto;
-    /* 3.5 posters visible: the half-cut one makes the horizontal scroll obvious */
     width: calc((100vw - 60px) / 3.5);
     max-width: 160px;
-    scroll-snap-align: center;
     margin-bottom: 6px;
+    scroll-snap-align: center;
   }
 
   /* no hover on touch: picked lift is the only resting transform */
@@ -169,9 +207,26 @@
     justify-content: space-between;
   }
 
+  #stage2 .shelfFoot {
+    margin-top: 24px;
+    padding-top: 0;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  #stage2 .shelfFoot .next {
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+  }
+
   #faves {
     bottom: calc(88px + env(safe-area-inset-bottom));
     width: 94vw;
+  }
+
+  #stage2.needsFaves #faves {
+    bottom: calc(18px + env(safe-area-inset-bottom));
   }
 
   /* ================= stage 3: looks match ================= */
@@ -179,7 +234,14 @@
   body.s3 #stage3 { inset: 0 4% 1%; }
 
   .booth,
-  .lmDrop { width: min(92vw, 54vh); }
+  .lmDrop { width: min(460px, 54vh, calc(100vw - 32px)); }
+
+  .lmDrop {
+    aspect-ratio: 7 / 6;
+    padding-block: 28px;
+  }
+
+  .lmDrop.hasPhoto { padding-block: 0; }
 
   /* bottom-sheet vibes: booth + CAPTURE hug the bottom so Anna's face stays
      visible above while she watches you pick a photo */
@@ -189,7 +251,11 @@
     padding-bottom: calc(10px + env(safe-area-inset-bottom));
   }
 
-  .lmCapture { width: min(92vw, 54vh); }
+  .lmMedia { flex: 0 0 auto; }
+
+  .lmCapture { width: min(460px, 54vh, calc(100vw - 36px)); }
+
+  .lmVerdict { margin-top: 18px; }
 
   /* the paired polaroids shrink to sit side by side on a phone */
   .pol {
@@ -197,14 +263,51 @@
     padding: 8px 8px 30px;
   }
 
+  /* Keep the result cards anchored just above their footer instead of
+     floating in the middle of Anna's face. */
+  .lmPair {
+    align-items: flex-end;
+    padding-bottom: 18px;
+  }
+
+  /* Center the heart over the two photo images, not near their top edges. */
+  .lmHeart {
+    top: 72%;
+    bottom: auto;
+  }
+
   .lmStage .shelfFoot,
   #stage3 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+
+  #stage3 .lmFoot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  #stage3 .lmFoot .next {
+    width: 100%;
+  }
 
   /* ================= stage 4: height check ================= */
 
   body.s4 #stage4 { z-index: 3; }
 
-  #stage4 .shelfFoot { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  #stage4 .shelfFoot {
+    padding: 12px 18px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  #stage4 .shelfFoot .next {
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+  }
+
+  /* Final verdict: use the full mobile portrait instead of the half-scale
+     desktop corner treatment, so Anna remains a strong background presence. */
+  body.s5 .avatar {
+    transform: translateX(-50%);
+    z-index: 4;
+  }
 }
 
 /* ================= mobile hardening (appended layer) ================= */
@@ -224,10 +327,11 @@
     font-size: 16px;
   }
 
-  /* movie test: legible CTA right above the film strip */
+  /* Swap the mobile prompt and count: instruction beneath the title, live
+     count directly above the swipe strip. */
   .shelfCta {
     display: block;
-    margin-top: auto;
+    margin: 2px 0 0;
     text-align: center;
     color: #fff;
     font-size: 16px;
@@ -235,7 +339,13 @@
     text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 10px rgba(0, 0, 0, .35);
   }
 
-  /* the CTA now owns the flex push; the strip hugs it */
+  #stage2 > #seenCount {
+    display: block !important;
+    margin-top: auto;
+    font-size: 14px;
+  }
+
+  /* The count owns the flex push; the strip hugs it. */
   .shelf { margin-top: 4px; }
 }
 

@@ -253,6 +253,10 @@
       c.classList.toggle('picked', seen[m.slug]);
       var n = Object.keys(seen).filter(function (k) { return seen[k]; }).length;
       $('seenCount').textContent = n + ' / ' + MOVIES.length + ' seen';
+      if (n > 0) {
+        $('movieInstruction').hidden = true;
+        $('seenCount').hidden = false;
+      }
     });
   });
 
@@ -263,7 +267,15 @@
      (iTunes Search API was tried first but Apple emptied its movie catalog.) */
   var favs = [];
   var favesBox = $('faves'), favInput = $('favInput'), favList = $('favList'), favChips = $('favChips');
+  var favesNextSlot = $('favesNextSlot');
+  var nextMovieBtn = $('nextBtn2');
   var favDeb = null;
+
+  function syncFavRequirement() {
+    var waiting = favesBox.classList.contains('show') && favs.length < 2;
+    nextMovieBtn.disabled = waiting;
+    nextMovieBtn.classList.toggle('awaitingFaves', waiting);
+  }
 
   function wikiSearch(q, cb) {
     fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' +
@@ -301,6 +313,7 @@
       chip.appendChild(rm);
       favChips.appendChild(chip);
     });
+    syncFavRequirement();
   }
 
   function addFav(title, art) {
@@ -393,24 +406,25 @@
   var STAGE_FX = { 1: 'waterfall', 2: 'none', 3: 'none', 4: 'shooting', 5: 'shooting' };
 
   var curStage = 1;
-  /* ---- Mobile: size Anna so her full face always clears the bottom sheet.
-     The static CSS guess can't track the sheet's real height, so measure it:
-     her chin sits ~62% down the portrait; scale her until the chin lands
-     just above whatever sheet the current stage shows. ---- */
+  var completedThrough = 0;
+  /* ---- Mobile: the movie and looks stages share one CSS portrait size.
+     On the birth stage, measure the bottom sheet and scale Anna so her full
+     face still clears it. ---- */
   var mobileMQ = window.matchMedia('(max-width: 700px)');
   function sizeAvatar() {
     var av = $('av');
-    if (!mobileMQ.matches || document.body.classList.contains('s4') || document.body.classList.contains('s5')) {
+    var usesSharedStagePortrait = document.body.classList.contains('s2') ||
+      document.body.classList.contains('s3');
+    if (!mobileMQ.matches || usesSharedStagePortrait ||
+        document.body.classList.contains('s4') || document.body.classList.contains('s5')) {
       av.style.height = '';
       return;
     }
-    var sheet = document.body.classList.contains('s2') ? document.querySelector('.shelfCta')
-      : document.body.classList.contains('s3') ? document.querySelector('.booth')
-      : document.querySelector('.card');
+    var sheet = document.querySelector('.card');
     if (!sheet) { av.style.height = ''; return; }
     var sheetTop = sheet.getBoundingClientRect().top;
     var avTop = av.getBoundingClientRect().top;
-    var h = (sheetTop - avTop - 8) / 0.62;
+    var h = ((sheetTop - avTop - 8) / 0.62) * 0.82;
     if (h > 0 && isFinite(h)) {
       av.style.height = Math.max(180, Math.min(h, window.innerHeight * 0.92)) + 'px';
     }
@@ -419,6 +433,8 @@
   window.addEventListener('load', sizeAvatar);
 
   function goStage(n) {
+    if (n > curStage) completedThrough = Math.max(completedThrough, n - 1);
+    if (n === 5) completedThrough = 5;
     curStage = n;
     document.body.classList.toggle('s2', n === 2);
     document.body.classList.toggle('s3', n === 3);
@@ -430,8 +446,12 @@
     setEffect(STAGE_FX[n] || 'none');
     document.querySelectorAll('.map .node').forEach(function (node, i) {
       node.classList.toggle('active', i === n - 1);
-      node.classList.toggle('done', i < n - 1);
+      node.classList.toggle('done', i < completedThrough);
     });
+    document.querySelector('.map').style.setProperty(
+      '--route-progress',
+      Math.min(completedThrough, 4) * 25 + '%'
+    );
     setTimeout(sizeAvatar, 50); // after the stage's sheet has laid out
   }
   // completed nodes are clickable to go back and redo an earlier stage
@@ -573,10 +593,14 @@
   // stage 2 NEXT: seen ≤3 of the shelf? then Anna demands ≥2 favorites first.
   // Movie taste folds into the score, then the reveal hands off to stage 3.
   var tasteResult = null;
-  $('nextBtn2').addEventListener('click', function () {
+  nextMovieBtn.addEventListener('click', function () {
+    $('movieInstruction').hidden = true;
     if (!synastryResult) return;
     if (seenCount() <= 3 && favs.length < 2) {
+      $('stage2').classList.add('needsFaves');
       favesBox.classList.add('show');
+      favesNextSlot.appendChild(nextMovieBtn);
+      syncFavRequirement();
       favInput.focus();
       return;
     }
@@ -662,10 +686,13 @@
         boothOn = true;
         $('boothVid').srcObject = stream;
         $('booth').classList.add('live');
+        lmCapture.hidden = false;
+        lmCapture.textContent = 'TAKE PHOTO';
         lmCapture.disabled = false;
       })
       .catch(function () {
         $('lmPrompt').textContent = 'camera said no 💔 upload one instead';
+        lmCapture.hidden = true;
       });
   }
   function stopBooth() {
@@ -722,8 +749,14 @@
       lmImg = img;
       startCutout(img);
       lmDrop.classList.add('hasPhoto');
-      lmDrop.style.backgroundImage = 'url("' + url + '")';
-      lmDrop.querySelector('b').textContent = 'hmm. okay. ready when you are';
+      lmDrop.style.backgroundImage = '';
+      lmDrop.style.setProperty('--lm-photo', 'url("' + url + '")');
+      $('lmInstruction').hidden = true;
+      $('lmPrompt').textContent = 'hmm okay... ready when you are';
+      $('lmPrompt').classList.add('ready', 'pinkTextBox');
+      $('lmMedia').insertBefore($('lmPrompt'), $('booth'));
+      lmCapture.hidden = false;
+      lmCapture.textContent = 'NEXT';
       lmCapture.disabled = false;
       $('lmYouImg').src = url;
     };
@@ -749,9 +782,8 @@
     // pixel pass always runs: it finds the face box for the polaroid cutout
     // and the stage-4 standee, and doubles as the fallback judge
     var local = Looks.analyze(lmImg);
-    if (local.stats && local.stats.face) {
-      $('lmYouImg').src = faceOnWhite(lmImg, local.stats.face);
-    }
+    // Keep the uploaded photo rectangular so it matches Anna's polaroid.
+    $('lmYouImg').src = lmImg.src;
     // real judge: Claude vision (assets/looks-ai.js) when a key is set;
     // any failure (no key, network, model declined) falls back to the pixels
     var pending = Promise.resolve(local);
@@ -767,6 +799,11 @@
         });
       }
     }
+    var pairHeart = $('lmHeart');
+    pairHeart.className = 'lmHeart pumping';
+    pairHeart.hidden = false;
+    pairHeart.innerHTML = '<span class="lmHeartWhole">' + heartSVG(false) + '</span>';
+    $('stage3').classList.add('hasResult');
     $('lmUpload').style.display = 'none';
     $('lmStage').classList.add('show');
     var bar = $('lmBar'), msg = $('lmMsg'), i = 0;
@@ -799,15 +836,37 @@
     $('lmLoad').style.display = 'none';
     var v = $('lmVerdict');
     v.className = 'lmVerdict show ' + (looksScore.matched ? 'yes' : 'no');
-    v.innerHTML = (looksScore.matched ? 'LOOKS MATCHED ' : 'NOT LOOKS MATCHED ') + heartSVG(!looksScore.matched) +
+    v.innerHTML = '<span class="lmVerdictScore">' + looksScore.score + '/100</span>' +
+      '<span class="lmVerdictStatus">' +
+      (looksScore.matched ? 'LOOKS MATCHED' : 'LOOKS NOT MATCHED') + '</span>' +
       '<small>' + looksScore.verdictLine + '</small>';
-    $('lmHeart').innerHTML = heartSVG(!looksScore.matched);
+    var pairHeart = $('lmHeart');
+    if (looksScore.matched) {
+      pairHeart.className = 'lmHeart pumping';
+      pairHeart.hidden = false;
+      pairHeart.innerHTML = '<span class="lmHeartWhole">' + heartSVG(false) + '</span>';
+    } else {
+      pairHeart.className = 'lmHeart';
+      pairHeart.innerHTML =
+        '<span class="lmHeartWhole">' + heartSVG(false) + '</span>' +
+        '<span class="lmHeartHalf lmHeartLeft">' + heartSVG(false) + '</span>' +
+        '<span class="lmHeartHalf lmHeartRight">' + heartSVG(false) + '</span>';
+      pairHeart.hidden = false;
+      pairHeart.classList.add('breaking');
+      var wholeHeart = pairHeart.querySelector('.lmHeartWhole');
+      setTimeout(function () {
+        if (wholeHeart && wholeHeart.isConnected && pairHeart.classList.contains('breaking')) {
+          wholeHeart.remove();
+        }
+      }, 2020);
+      var noneFxBtn = document.querySelector('.anims button[data-fx="none"]');
+      if (noneFxBtn) noneFxBtn.click();
+    }
     setMood(looksScore.matched ? 'smug' : 'angry'); // matched: she KNEW she was right about you
     if (looksScore.matched) {
       var heartsBtn = document.querySelector('.anims button[data-fx="hearts"]');
       if (heartsBtn) heartsBtn.click();
     }
-    $('lmScoreLine').textContent = 'looks score: ' + looksScore.score + ' / 100';
     $('lmFoot').classList.add('show');
   }
 
@@ -895,38 +954,35 @@
     };
   }
 
-  // JibJab-style head for the standee: with a segmentation cutout it's the
-  // real head silhouette (CSS crops it round); otherwise fall back to the
-  // ellipse cut around the detected face box
+  // Build a square, slightly zoomed crop around the segmented or detected
+  // face. CSS clips it into a fixed-size circle that never stretches.
   function faceSticker(img, box) {
     var m = lmCut && headMetrics(lmCut);
     if (m) {
-      // just the head: hair top to the shoulder jump, nothing below
-      var cropW = m.width * 1.15;
-      var cropH = (m.headH || m.width * 1.3) * 1.06;
-      var S = 300, SH = Math.max(120, Math.round(S * cropH / cropW));
+      var cropSide = Math.max(m.width * 1.25, (m.headH || m.width * 1.3) * 1.12);
+      var S = 300;
       var c2 = document.createElement('canvas');
-      c2.width = S; c2.height = SH;
+      c2.width = S; c2.height = S;
       c2.getContext('2d').drawImage(lmCut,
-        m.cx - cropW / 2, m.top - cropH * 0.03, cropW, cropH, 0, 0, S, SH);
+        m.cx - cropSide / 2, m.top - cropSide * .05,
+        cropSide, cropSide, 0, 0, S, S);
       return c2.toDataURL('image/png');
     }
     var bw = (box.x1 - box.x0) * img.naturalWidth, bh = (box.y1 - box.y0) * img.naturalHeight;
     var cx = (box.x0 + box.x1) / 2 * img.naturalWidth, cy = (box.y0 + box.y1) / 2 * img.naturalHeight;
-    var rx = bw * 0.72, ry = bh * 0.82; // a hair wider/taller than the box for hair + chin
-    var W = 300, H = Math.max(200, Math.round(300 * (ry / rx)));
+    var side = Math.min(
+      Math.max(bw, bh) * 1.25,
+      img.naturalWidth,
+      img.naturalHeight
+    );
+    var sx = Math.max(0, Math.min(img.naturalWidth - side, cx - side / 2));
+    var sy = Math.max(0, Math.min(img.naturalHeight - side, cy - side * .48));
+    var W = 300, H = 300;
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
     var ctx = c.getContext('2d');
-    ctx.beginPath();
-    ctx.ellipse(W / 2, H / 2, W / 2 - 2, H / 2 - 2, 0, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.fill(); // the white border IS a bigger white ellipse underneath
-    ctx.beginPath();
-    ctx.ellipse(W / 2, H / 2, W / 2 - 14, H / 2 - 14, 0, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.drawImage(img, cx - rx, cy - ry, rx * 2, ry * 2, 14, 14, W - 28, H - 28);
-    return c.toDataURL('image/png');
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, W, H);
+    return c.toDataURL('image/jpeg', .92);
   }
   var stickerUrl = null, stickerFor = '';
 
@@ -1106,6 +1162,8 @@
 
   $('hcSlider').addEventListener('input', function () {
     hcIn = +this.value;
+    $('hcInstruction').hidden = true;
+    $('hcLine').hidden = false;
     syncStandees();
   });
   window.addEventListener('resize', function () {
@@ -1182,13 +1240,10 @@
   function openModal(o) {
     document.querySelector('#overlay .modal h2').textContent = o.title;
     $('mPct').textContent = o.pct;
-    $('mVerdict').textContent = o.verdict;
-    $('mBig3').innerHTML = o.big3;
     $('mGreen').innerHTML = o.green.map(function (f) { return '<li>' + heartSVG(false) + ' ' + f.text + ' <b>(+' + f.pts + ')</b></li>'; }).join('') ||
       '<li>' + o.noGreen + '</li>';
     $('mRed').innerHTML = o.red.map(function (f) { return '<li>' + heartSVG(true) + ' ' + f.text + ' <b>(' + f.pts + ')</b></li>'; }).join('') ||
       '<li>' + o.noRed + '</li>';
-    $('mFine').textContent = o.fine;
     $('overlay').style.display = 'flex';
   }
 
@@ -1228,7 +1283,7 @@
       title: 'LOOKS MATCH REPORT',
       pct: looksScore.score + '%',
       verdict: looksScore.verdictLine,
-      big3: '<b>result:</b> ' + (looksScore.matched ? 'LOOKS MATCHED' : 'NOT LOOKS MATCHED') +
+      big3: '<b>result:</b> ' + (looksScore.matched ? 'LOOKS MATCHED' : 'LOOKS NOT MATCHED') +
         '<br><b>bar to clear:</b> ' + Looks.MATCH_AT + '% — Anna grades on her own curve',
       green: looksScore.flags.filter(function (f) { return f.good; }),
       red: looksScore.flags.filter(function (f) { return !f.good; }),

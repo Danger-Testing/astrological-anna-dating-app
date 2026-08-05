@@ -26,6 +26,16 @@
   --pink-card-border: #b3186b;
   --pink-card: #ffe4f0;
   --pink-soft: #ffd9e9;
+  --next-gradient:
+    linear-gradient(180deg, #ffb6ed 0%, rgba(255, 182, 237, 0) 70%),
+    linear-gradient(90deg, #ed468c 0%, #ed468c 100%);
+  --text-box-stroke-start: #fef4fb;
+  --text-box-stroke-end: #f898d8;
+  --text-box-stroke-gradient: linear-gradient(180deg, var(--text-box-stroke-start) 0%, var(--text-box-stroke-end) 100%);
+  --text-box-fill: #fff0f6;
+  --text-box-highlight: #fdcaed;
+  --text-box-radius: 20px;
+  --text-box-shadow: 0 8px 12.6px rgba(97, 97, 97, .2);
   --ink: #4a1030;
   --sky: #edfaff;
   --font-round: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', Arial, sans-serif;
@@ -38,6 +48,40 @@ body {
   font-family: var(--font-round);
   font-weight: 500;
   background: var(--sky);
+}
+
+/* Shared Figma text-box skin: opaque blush, the supplied halftone at
+   30% opacity, then the pink highlight gradient above it. The effects live
+   behind the contents so form controls and links remain fully interactive. */
+.pinkTextBox {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(var(--text-box-fill), var(--text-box-fill)) padding-box,
+    var(--text-box-stroke-gradient) border-box;
+  border: 4px solid transparent;
+  border-radius: var(--text-box-radius);
+  box-shadow: var(--text-box-shadow);
+}
+
+.pinkTextBox::before,
+.pinkTextBox::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.pinkTextBox::before {
+  z-index: -2;
+  background: url('../assets/halftone-text-box.png') center / cover no-repeat;
+  opacity: .6;
+}
+
+.pinkTextBox::after {
+  z-index: -1;
+  background: linear-gradient(180deg, var(--text-box-highlight), rgba(253, 202, 237, 0));
 }
 
 /* DS-menu weight for anything already bolded */

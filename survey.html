@@ -22,8 +22,9 @@
 </head>
 <body>
 
-  <video class="stars" autoplay muted loop playsinline>
-    <source src="stars.mp4">
+  <video class="stars" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+    <source src="assets/dream-sky-mobile-loop.webm" type="video/webm" media="(max-width: 700px)">
+    <source src="assets/dream-sky-desktop-loop.webm" type="video/webm">
   </video>
 
   <!-- Level-map progress rail -->
@@ -35,8 +36,8 @@
     <i class="node n4">4</i>
     <i class="node n5">5</i>
     <em class="lbl n1">astrology</em>
-    <em class="lbl n2">movie test</em>
-    <em class="lbl n3">looks match</em>
+    <em class="lbl n2">movies</em>
+    <em class="lbl n3">looks</em>
     <em class="lbl n4">height</em>
     <em class="lbl n5">final</em>
   </nav>
@@ -51,7 +52,7 @@
       <img class="steam sR" src="assets/steam-right.png" alt="">
     </div>
 
-    <form class="card">
+    <form class="card pinkTextBox">
       <b>BIRTH DATE</b>
       <div class="row">
         <select id="bMonth"></select>
@@ -80,27 +81,28 @@
     <!-- Stage 2: the movie test (Blu-ray shelf; cases are built by js/survey.js) -->
     <section id="stage2">
       <header class="shelfHead">
-        <b>THE MOVIE TEST</b>
-        <span>click every one you've <i>actually</i> seen — Anna can tell when you lie</span>
+        <b>MOVIE TEST</b>
+        <span id="movieInstruction" hidden>what have you <i>actually</i> seen — Anna can tell when you lie</span>
+        <b class="shelfCta">choose movies you've seen</b>
       </header>
-      <!-- .shelf is display:contents on desktop; on mobile it turns the two
-           rows into one horizontal film strip -->
-      <b class="shelfCta">choose the movies you've seen ↓</b>
+      <span id="seenCount" hidden>0 / 12 seen</span>
+      <!-- Desktop keeps two shelf rows; mobile dissolves those source rows
+           into one horizontal strip. -->
       <div class="shelf">
         <div class="shelfRow" id="shelfRow1"></div>
         <div class="shelfRow" id="shelfRow2"></div>
       </div>
       <!-- shown by NEXT when they've seen 3 or fewer: Anna demands favorites instead -->
-      <div id="faves">
+      <div id="faves" class="pinkTextBox">
         <b>seen that few?? okay… type your favorite movies so Anna can judge those instead <i>(minimum 2)</i></b>
         <div class="locwrap">
           <input id="favInput" placeholder="start typing a movie" autocomplete="off">
           <div id="favList"></div>
         </div>
         <div id="favChips"></div>
+        <div id="favesNextSlot"></div>
       </div>
       <footer class="shelfFoot">
-        <span class="seen" id="seenCount">0 / 12 seen</span>
         <button type="button" class="next" id="nextBtn2">NEXT →</button>
       </footer>
     </section>
@@ -109,46 +111,46 @@
     <section id="stage3">
       <header class="shelfHead">
         <b>LOOKS MATCH</b>
-        <span>upload a photo — Anna needs to see exactly who she's dealing with</span>
+        <span id="lmInstruction">upload a photo — Anna needs to see exactly who she's dealing with</span>
       </header>
 
       <div class="lmUpload" id="lmUpload">
         <input type="file" id="lmFile" accept="image/*" hidden>
-        <div class="booth" id="booth">
-          <video id="boothVid" autoplay playsinline muted></video>
-          <div class="boothCount" id="boothCount" aria-hidden="true"></div>
-          <div class="boothFlash" id="boothFlash" aria-hidden="true"></div>
-          <!-- choose: live photobooth or a photo from the library -->
-          <div class="lmDrop" id="lmDrop">
-            <i class="lmCam" aria-hidden="true">
-              <u class="camTop"></u>
-              <u class="camLens"></u>
-              <u class="camFlash"></u>
-            </i>
-            <b id="lmPrompt">show anna what you look like</b>
-            <div class="lmBtns">
-              <button type="button" id="lmTake">📷 take a photo</button>
-              <button type="button" id="lmPick">🖼 upload one</button>
+        <div class="lmMedia" id="lmMedia">
+          <div class="booth" id="booth">
+            <video id="boothVid" autoplay playsinline muted></video>
+            <div class="boothCount" id="boothCount" aria-hidden="true"></div>
+            <div class="boothFlash" id="boothFlash" aria-hidden="true"></div>
+            <!-- choose: live photobooth or a photo from the library -->
+            <div class="lmDrop" id="lmDrop">
+              <i class="lmCam" aria-hidden="true">
+                <u class="camTop"></u>
+                <u class="camLens"></u>
+                <u class="camFlash"></u>
+              </i>
+              <b id="lmPrompt">show anna<br>what you look like</b>
+              <div class="lmBtns">
+                <button type="button" id="lmTake">take photo</button>
+                <button type="button" id="lmPick">upload</button>
+              </div>
             </div>
-            <span>face clearly visible · no group pics · Anna will know</span>
           </div>
         </div>
-        <button type="button" class="next lmCapture" id="lmCapture" disabled>CAPTURE →</button>
+        <button type="button" class="next lmCapture" id="lmCapture" hidden disabled>NEXT</button>
       </div>
 
       <div class="lmStage" id="lmStage">
+        <div class="lmVerdict" id="lmVerdict"></div>
         <div class="lmPair">
           <figure class="pol you"><img id="lmYouImg" alt="you"><figcaption>you</figcaption></figure>
-          <div class="lmHeart" id="lmHeart">💘</div>
+          <div class="lmHeart" id="lmHeart" aria-hidden="true"></div>
           <figure class="pol annaPol"><img src="assets/portrait.png" alt="anna"><figcaption>anna</figcaption></figure>
         </div>
         <div class="lmLoad" id="lmLoad">
           <div class="lmBarWrap"><div class="lmBar" id="lmBar"></div></div>
           <span class="lmMsg" id="lmMsg">checking looks compatibility…</span>
         </div>
-        <div class="lmVerdict" id="lmVerdict"></div>
         <footer class="shelfFoot lmFoot" id="lmFoot">
-          <span class="seen" id="lmScoreLine"></span>
           <button type="button" class="next" id="nextBtn3">NEXT →</button>
         </footer>
       </div>
@@ -157,8 +159,9 @@
     <!-- Stage 4: the height check (standees + ruler slider; face comes from stage 3) -->
     <section id="stage4">
       <header class="shelfHead">
-        <b>THE HEIGHT CHECK</b>
-        <span>drag the ruler to set YOUR height — be honest, Anna measures everyone at the door</span>
+        <b>HEIGHT CHECK</b>
+        <span id="hcLine" hidden>you vs. anna (5′2″)</span>
+        <span id="hcInstruction">drag the ruler — be honest, Anna measures everyone at the door</span>
       </header>
 
       <div class="hcFloor" id="hcFloor">
@@ -183,16 +186,15 @@
       </div>
 
       <footer class="shelfFoot">
-        <span class="seen" id="hcLine">you vs. anna (5′2″)</span>
         <button type="button" class="next" id="nextBtn4">NEXT →</button>
       </footer>
     </section>
 
-    <!-- Stage 5: final verdict (rendered by js/final.js) -->
-    <section id="stage5"></section>
+    <!-- Stage 5: aggregate verdict; populated by js/final.js -->
+    <section id="stage5" aria-live="polite"></section>
 
     <div class="betas">
-      <div class="anims betaPanel" id="animsPanel">
+      <div class="anims betaPanel pinkTextBox" id="animsPanel">
         <div class="betaHead">ANIMATION BETA <button type="button" class="betaToggle" aria-label="hide panel">–</button></div>
         <div class="betaBody">
           <button type="button" class="on" data-fx="none">none</button>
@@ -203,7 +205,7 @@
           <button type="button" data-fx="shooting">🌠 shooting stars</button>
         </div>
       </div>
-      <div class="moods betaPanel" id="moodsPanel">
+      <div class="moods betaPanel pinkTextBox" id="moodsPanel">
         <div class="betaHead">EMOTION BETA <button type="button" class="betaToggle" aria-label="hide panel">–</button></div>
         <div class="betaBody">
           <button type="button" class="on" data-img="portrait-cutout">neutral</button>
@@ -239,14 +241,11 @@
 
   <!-- Compatibility result modal -->
   <div id="overlay">
-    <div class="modal">
+    <div class="modal pinkTextBox">
       <h2>COSMIC COMPATIBILITY</h2>
       <div class="pct" id="mPct"></div>
-      <p class="verdict" id="mVerdict"></p>
-      <div class="big3" id="mBig3"></div>
       <h3>💖 GREEN FLAGS</h3><ul id="mGreen"></ul>
       <h3>💔 RED FLAGS</h3><ul id="mRed"></ul>
-      <p class="fine" id="mFine"></p>
       <button class="closeM" id="closeM">close</button>
     </div>
   </div>
@@ -260,6 +259,7 @@
   <!-- gitignored local secrets (API key); 404s harmlessly if absent -->
   <script src="config.local.js"></script>
   <script src="assets/looks-ai.js?v=3"></script>
+  <script src="js/background-video.js"></script>
   <script src="js/final.js"></script>
   <script src="js/survey.js?v=2"></script>
 

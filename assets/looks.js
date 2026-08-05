@@ -143,8 +143,8 @@ var Looks = (function () {
     // the verdict is you-vs-Anna, not a feature checklist
     var verdictLine =
       score >= 82 ? 'somehow more attractive than Anna. she’s rattled.' :
-      score >= MATCH_AT ? 'attractiveness: evenly matched. Anna accepts.' :
-      score >= 48 ? 'so close — but Anna is slightly out of your league' :
+      score >= MATCH_AT ? 'your looks are evenly matched. Anna accepts.' :
+      score >= 48 ? 'Anna is slightly out of your league' :
       'Anna is, respectfully, way out of your league';
     return {
       score: score,
